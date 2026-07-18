@@ -1,0 +1,13 @@
+/* Tailwind v4 entrypoint. Load order mirrors the original styles/index.css
+   exactly: fonts → tailwind → animations → design-system theme.
+
+   fonts.css MUST come first: it holds the Google Fonts `@import url(...)`, and
+   CSS requires @import rules to precede all style rules. `@import 'tailwindcss'`
+   expands into real rules, so if it came first the browser could silently drop
+   the font import. Unlike the Vite export we omit `source(none)` and let
+   Tailwind auto-detect content under src/**, so every migrated component's
+   utility classes are picked up. */
+@import './fonts.css';
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './theme.css';

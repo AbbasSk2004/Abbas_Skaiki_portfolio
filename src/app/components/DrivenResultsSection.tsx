@@ -1,72 +1,29 @@
-'use client';
+import { getDrivenResults } from '@/api/public/drivenResults';
+import { DrivenResultsGrid, type Metric } from './DrivenResultsGrid';
 
-import React, { useEffect, useRef } from 'react';
-import { motion, useInView, useMotionValue, useTransform, animate } from 'motion/react';
+// The headline copy is presentation, not data — it never varied per record and
+// was never seeded, so it stays here in the component.
+const HEADLINE =
+  "THE WORK DOESN'T JUST LOOK GOOD — IT PERFORMS. HERE'S THE IMPACT BEHIND THE DESIGN.";
 
-const metrics = [
-  {
-    num: 22,
-    suffix: "+",
-    label: "PROJECTS",
-    desc: "Websites engineered and deployed for startups, applications, and brands globally."
-  },
-  {
-    num: 98,
-    suffix: "%",
-    label: "CLIENT SATISFACTION",
-    desc: "Built on long-term partnerships, architectural reliability, and clear delivery timelines."
-  },
-  {
-    num: 4,
-    suffix: "+",
-    label: "YEARS EXPERIENCE",
-    desc: "Refining full-stack production pipelines, system performance, and automated logic."
-  },
-  {
-    num: 5,
-    suffix: "+",
-    label: "AVG RATING",
-    desc: "Trusted by founders and tech teams to deliver exceptionally polished product architectures."
-  }
-];
+// Server Component: fetches the impact metrics from the Express API (1-hour ISR
+// via getDrivenResults) and hands plain data to the client grid, where the
+// framer-motion count-up animation lives. Splitting this way keeps `revalidate`
+// working while preserving the client-only AnimatedCounter.
+export const DrivenResultsSection: React.FC = async () => {
+  const results = await getDrivenResults();
 
-// Four-dot progress indicator: `active` dots take the accent color in order,
-// the rest stay muted. Box 1 colors 1 dot, box 2 colors 2, and so on —
-// mirroring the Approach section.
-const ProgressDots: React.FC<{ active: number }> = ({ active }) => (
-  <div className="flex flex-row items-center gap-1.5">
-    {[0, 1, 2, 3].map((i) => (
-      <span
-        key={i}
-        className={`w-1.5 h-1.5 rounded-full ${
-          i < active ? 'bg-red-500' : 'bg-zinc-700'
-        }`}
-      />
-    ))}
-  </div>
-);
+  // Map the API document onto the shape the grid renders. `value` -> num;
+  // prefix is prepended to the suffix slot only if present (the design shows a
+  // trailing glyph, so a prefix like "$" is rendered ahead of the number).
+  const metrics: Metric[] = results.map((r) => ({
+    num: r.value,
+    prefix: r.prefix ?? '',
+    suffix: r.suffix ?? '',
+    label: r.label,
+    desc: r.description ?? '',
+  }));
 
-const AnimatedCounter: React.FC<{ value: number; suffix: string }> = ({ value, suffix }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
-
-  useEffect(() => {
-    if (isInView) {
-      animate(count, value, { duration: 2.5, ease: "easeOut" });
-    }
-  }, [isInView, count, value]);
-
-  return (
-    <span ref={ref} className="flex items-center">
-      <motion.span>{rounded}</motion.span>
-      <span>{suffix}</span>
-    </span>
-  );
-};
-
-export const DrivenResultsSection: React.FC = () => {
   return (
     <section id="results" className="w-full bg-[#050505] text-white">
       <div className="max-w-7xl mx-auto border-b border-white/10">
@@ -84,45 +41,13 @@ export const DrivenResultsSection: React.FC = () => {
           {/* Right Pane */}
           <div className="col-span-1 md:col-span-8 p-6 md:p-12">
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold uppercase tracking-tight leading-[1.1] font-['Space_Grotesk'] text-white">
-              THE WORK DOESN'T JUST LOOK GOOD — IT PERFORMS. HERE'S THE IMPACT BEHIND THE DESIGN.
+              {HEADLINE}
             </h2>
           </div>
         </div>
 
-        {/* Bottom Block (The Metric Grid): 2x2 on mobile, 4x1 on desktop) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 w-full border-t border-white/10">
-          {metrics.map((metric, idx) => {
-            // 2x2 on mobile: right border on the left column (even index),
-            // bottom border on the top row (first two items).
-            // 4x1 on desktop: right border on the first three, none on the last,
-            // and no bottom borders (single edge-to-edge row).
-            const mobileRight = idx % 2 === 0 ? 'border-r' : '';
-            const mobileBottom = idx < 2 ? 'border-b' : '';
-            const desktopRight = idx < metrics.length - 1 ? 'md:border-r' : 'md:border-r-0';
-
-            return (
-            <div
-              key={idx}
-              className={`border-white/10 ${mobileRight} ${mobileBottom} ${desktopRight} md:border-b-0 p-8 flex flex-col justify-between min-h-[280px] group hover:bg-white/[0.02] transition-colors`}
-            >
-              <div>
-                <div className="mb-4">
-                  <ProgressDots active={idx + 1} />
-                </div>
-                <div className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter my-2 font-['Space_Grotesk']">
-                  <AnimatedCounter value={metric.num} suffix={metric.suffix} />
-                </div>
-                <div className="text-xs font-mono tracking-widest uppercase text-white mb-2 mt-6">
-                  {metric.label}
-                </div>
-              </div>
-              <div className="text-zinc-500 text-sm leading-relaxed max-w-[220px] font-['Inter']">
-                {metric.desc}
-              </div>
-            </div>
-            );
-          })}
-        </div>
+        {/* Bottom Block (The Metric Grid) — client component owns the count-up */}
+        <DrivenResultsGrid metrics={metrics} />
 
       </div>
     </section>

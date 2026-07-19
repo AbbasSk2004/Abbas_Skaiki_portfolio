@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
-import type { Project } from '../../data/projects';
+import type { Project } from '../types';
 
 // Client presentation for a resolved project. All interactivity (motion
 // scroll-reveals) lives here; slug resolution, redirects, static params and

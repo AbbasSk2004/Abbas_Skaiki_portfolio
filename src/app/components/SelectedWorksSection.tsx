@@ -2,16 +2,18 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
-import { projects } from '../data/projects';
+import { getProjects } from '@/api/public/projects';
+import { mapApiProject, sortByIndex } from '../works/projectLayout';
 
 // The home page teaser shows only the first three projects; the full set lives
-// on /works. Slicing the shared data keeps this in sync with the works index
-// automatically — reorder the data array and the featured three follow.
-const featured = projects.slice(0, 3);
+// on /works. Data comes from the Express API (1-hour ISR via getProjects) and
+// is sorted into the same editorial order as the works index, so the featured
+// three always match the top of /works.
+//
+// Async Server Component — no client state, links are next/link.
+export const SelectedWorksSection: React.FC = async () => {
+  const featured = sortByIndex((await getProjects()).map(mapApiProject)).slice(0, 3);
 
-// Static, data-driven listing (links are next/link, no client state) →
-// Server Component.
-export const SelectedWorksSection: React.FC = () => {
   return (
     <section id="selected-works" className="w-full bg-[#050505] text-white">
       <div className="max-w-7xl mx-auto grid grid-cols-12 border-b border-white/10">

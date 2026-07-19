@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { GridBackground } from './components/GridBackground';
 import { Navbar } from './components/Navbar';
-import { ContactFooter } from './components/ContactFooter';
+import { ContactFooterSection } from './components/ContactFooterSection';
 
 // Global SEO via the Next.js Metadata API. Page-level files can extend/override
 // individual fields (see works/[slug]/page.tsx for a dynamic example).
@@ -45,7 +45,7 @@ export default function RootLayout({
           <div className="relative w-full">
             <Navbar />
             <main className="relative w-full">{children}</main>
-            <ContactFooter />
+            <ContactFooterSection />
           </div>
         </GridBackground>
       </body>

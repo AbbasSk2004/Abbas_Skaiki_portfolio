@@ -1,16 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { API_BASE_URL } from '@/api/api';
+import type { ContactInfo, SocialLinkItem } from '@/app/works/types';
 
-// --- Design tokens / data ---------------------------------------------------
-// Swap these out with real info as needed.
-const CONTACT_EMAIL = 'skaiki.dev@gmail.com';
-const CONTACT_PHONE = '+961 76 937 310';
-
-// Endpoint the contact form POSTs to (e.g. a Formspree URL or an API route).
-// TODO: replace with your live endpoint. Until set, submissions bail out early.
-const CONTACT_ENDPOINT = '';
-
+// Static nav links — these are route anchors, not CMS data.
 const NAV_LINKS = [
   { label: 'HOME', href: '/#' },
   { label: 'ABOUT', href: '/#about' },
@@ -18,12 +12,20 @@ const NAV_LINKS = [
   { label: 'CONTACT', href: '/#contact' },
 ];
 
-const SOCIAL_LINKS = [
-  { label: 'TWITTER(X)', href: '#' },
-  { label: 'INSTAGRAM', href: '#' },
-  { label: 'LINKEDIN', href: '#' },
-  { label: 'GITHUB', href: '#' },
+// Defensive fallbacks used only if the /api/contact call fails or returns
+// partial data, so the footer never renders an empty contact block.
+const FALLBACK_EMAIL = 'skaiki.dev@gmail.com';
+const FALLBACK_PHONE = '+961 76 937 310';
+const FALLBACK_NOTE = "I'm always open to collaborations and creative challenges.";
+const FALLBACK_SOCIAL_LINKS: SocialLinkItem[] = [
+  { _id: 'fb-x', platform: 'TWITTER(X)', url: '#' },
+  { _id: 'fb-ig', platform: 'INSTAGRAM', url: '#' },
+  { _id: 'fb-li', platform: 'LINKEDIN', url: '#' },
+  { _id: 'fb-gh', platform: 'GITHUB', url: '#' },
 ];
+
+// Submission lifecycle for the inquiry form.
+type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
 
 // Reused arrow glyph so every CTA points the same way.
 const Arrow: React.FC<{ className?: string }> = ({ className }) => (
@@ -41,30 +43,76 @@ const Arrow: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const ContactFooter: React.FC = () => {
+// The footer is a client component (the inquiry form is interactive). Its data
+// (contact singleton) is fetched by the ContactFooterSection server wrapper and
+// passed in as `contact`; every field has a fallback so a failed/empty fetch
+// still renders a complete footer.
+export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ contact }) => {
+  const email = contact?.email || FALLBACK_EMAIL;
+  const phone = contact?.phone || FALLBACK_PHONE;
+  const note = contact?.availabilityNote || FALLBACK_NOTE;
+  const socialLinks =
+    contact?.socialLinks && contact.socialLinks.length > 0
+      ? contact.socialLinks
+      : FALLBACK_SOCIAL_LINKS;
+
+  const [submitState, setSubmitState] = useState<SubmitState>('idle');
+  const [feedback, setFeedback] = useState('');
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // TODO: point CONTACT_ENDPOINT at a real destination to enable submissions.
-    if (!CONTACT_ENDPOINT) return;
+    if (submitState === 'submitting') return;
 
     const form = e.currentTarget;
-    const payload = Object.fromEntries(new FormData(form).entries());
+    const data = new FormData(form);
+    const name = String(data.get('name') ?? '').trim();
+    const senderEmail = String(data.get('email') ?? '').trim();
+    const senderPhone = String(data.get('phone') ?? '').trim();
+    const details = String(data.get('details') ?? '').trim();
+
+    // Client-side guard mirrors the Inquiry model's required fields, so we don't
+    // fire a request the backend will only reject with a 400.
+    if (!name || !senderEmail || !details) {
+      setSubmitState('error');
+      setFeedback('Please fill in your name, email, and project details.');
+      return;
+    }
+
+    setSubmitState('submitting');
+    setFeedback('');
+
+    // Map the form onto the Inquiry model's shape. The model has no `phone`
+    // field, so the phone number is folded into the message body rather than
+    // dropped — see note in the PR: consider adding `phone` to the Inquiry model.
+    const message = senderPhone ? `${details}\n\nPhone: ${senderPhone}` : details;
 
     try {
-      const res = await fetch(CONTACT_ENDPOINT, {
+      const res = await fetch(`${API_BASE_URL}/api/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ name, email: senderEmail, subject: 'Website inquiry', message }),
       });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      const body = await res.json().catch(() => null);
+
+      if (!res.ok || !body?.success) {
+        throw new Error(body?.message ?? `Request failed: ${res.status}`);
+      }
+
       form.reset();
-      // TODO: surface a success state (e.g. sonner toast).
+      setSubmitState('success');
+      setFeedback(body.message ?? 'Your inquiry has been received. I will be in touch shortly.');
     } catch (err) {
       console.error('Contact form submission failed:', err);
-      // TODO: surface an error state.
+      setSubmitState('error');
+      setFeedback(
+        err instanceof Error && err.message
+          ? err.message
+          : 'Something went wrong. Please try again or email me directly.'
+      );
     }
   };
+
+  const isSubmitting = submitState === 'submitting';
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col">
@@ -90,29 +138,29 @@ export const ContactFooter: React.FC = () => {
 
           {/* Introductory statement */}
           <p className="font-['Inter'] text-zinc-400 text-lg md:text-xl max-w-sm mt-4">
-            I'm always open to collaborations and creative challenges.
+            {note}
           </p>
 
           {/* Bottom contact details */}
           <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:gap-8 gap-2">
             <a
-              href={`mailto:${CONTACT_EMAIL}`}
+              href={`mailto:${email}`}
               className="font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
             >
-              {CONTACT_EMAIL}
+              {email}
             </a>
             <a
-              href={`tel:${CONTACT_PHONE.replace(/[^+\d]/g, '')}`}
+              href={`tel:${phone.replace(/[^+\d]/g, '')}`}
               className="font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
             >
-              {CONTACT_PHONE}
+              {phone}
             </a>
           </div>
         </div>
 
         {/* Col 3 & 4 — Right side (form) */}
         <div className="md:col-span-2 flex flex-col">
-          <form className="flex flex-col h-full" onSubmit={handleSubmit}>
+          <form className="flex flex-col h-full" onSubmit={handleSubmit} noValidate>
             {/* Row 1 — NAME */}
             <div className="flex flex-col justify-center border-b border-white/10 p-6 md:p-8 min-h-[120px] hover:bg-white/[0.02] focus-within:bg-white/[0.02] transition-colors">
               <label
@@ -125,8 +173,10 @@ export const ContactFooter: React.FC = () => {
                 id="cf-name"
                 type="text"
                 name="name"
+                required
+                disabled={isSubmitting}
                 placeholder="John Doe"
-                className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700"
+                className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700 disabled:opacity-50"
               />
             </div>
 
@@ -143,8 +193,10 @@ export const ContactFooter: React.FC = () => {
                   id="cf-email"
                   type="email"
                   name="email"
+                  required
+                  disabled={isSubmitting}
                   placeholder="john@example.com"
-                  className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700"
+                  className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700 disabled:opacity-50"
                 />
               </div>
               <div className="flex flex-col justify-center p-6 md:p-8 min-h-[120px] hover:bg-white/[0.02] focus-within:bg-white/[0.02] transition-colors">
@@ -158,8 +210,9 @@ export const ContactFooter: React.FC = () => {
                   id="cf-phone"
                   type="tel"
                   name="phone"
+                  disabled={isSubmitting}
                   placeholder="+1 (555) 000-0000"
-                  className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700"
+                  className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -175,17 +228,34 @@ export const ContactFooter: React.FC = () => {
               <textarea
                 id="cf-details"
                 name="details"
+                required
+                disabled={isSubmitting}
                 placeholder="Tell me about your project..."
-                className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700 resize-none h-32"
+                className="w-full bg-transparent focus:outline-none font-['Inter'] text-lg text-white placeholder:text-zinc-700 resize-none h-32 disabled:opacity-50"
               />
             </div>
+
+            {/* Feedback row — only rendered once there's something to say. Uses
+                aria-live so screen readers announce success/error asynchronously. */}
+            {feedback && (
+              <div
+                role="status"
+                aria-live="polite"
+                className={`px-6 md:px-8 py-4 border-b border-white/10 font-mono text-xs tracking-wide ${
+                  submitState === 'error' ? 'text-red-400' : 'text-emerald-400'
+                }`}
+              >
+                {feedback}
+              </div>
+            )}
 
             {/* Submit CTA — spans full width */}
             <button
               type="submit"
-              className="w-full p-6 md:p-8 text-left font-['Space_Grotesk'] text-2xl md:text-3xl font-bold uppercase tracking-tight text-white hover:bg-white hover:text-black transition-colors flex justify-between items-center group"
+              disabled={isSubmitting}
+              className="w-full p-6 md:p-8 text-left font-['Space_Grotesk'] text-2xl md:text-3xl font-bold uppercase tracking-tight text-white hover:bg-white hover:text-black transition-colors flex justify-between items-center group disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-white disabled:cursor-not-allowed"
             >
-              <span>Submit Request</span>
+              <span>{isSubmitting ? 'Sending…' : 'Submit Request'}</span>
               <svg
                 width="24"
                 height="24"
@@ -258,16 +328,16 @@ export const ContactFooter: React.FC = () => {
             <div className="p-6 border-b border-white/10 font-mono text-[10px] uppercase tracking-widest text-zinc-500">
               Follow On
             </div>
-            {SOCIAL_LINKS.map((social) => (
+            {socialLinks.map((social) => (
               <a
-                key={social.label}
-                href={social.href}
+                key={social._id}
+                href={social.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 min-h-[60px] p-6 border-b border-white/10 last:border-b-0 flex justify-start items-center group hover:bg-white/[0.02] transition-colors"
               >
                 <span className="font-mono text-xs uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">
-                  {social.label}
+                  {social.platform}
                 </span>
               </a>
             ))}

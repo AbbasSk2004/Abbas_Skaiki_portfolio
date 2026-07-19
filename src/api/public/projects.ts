@@ -1,7 +1,8 @@
 import { apiGet } from '../api';
 
-// Mirrors the Project documents served by the Express backend. Kept independent
-// of the old src/app/data/projects.ts shape — see notes below on field drift.
+// Mirrors the Project documents served by the Express backend. The frontend
+// `Project` type (works/types.ts) adds presentation-only layout hints on top of
+// this via mapApiProject; see works/projectLayout.ts.
 export type ApiProject = {
   _id: string;
   title: string;

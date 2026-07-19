@@ -1,46 +1,35 @@
-'use client';
-
 import React from 'react';
-import { motion } from 'motion/react';
 import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
+import { getServices } from '@/api/public/services';
 
-// Vite-ism removed: assets in public/ are served from the root, so we reference
-// the service hero by its public path string instead of importing it.
+// Section-level hero image and the pull-quote are presentation, not per-record
+// data — they never varied per service and were never seeded, so they stay here.
 const heroImage = '/assets/service.png';
+const QUOTE =
+  '"I HELP BRANDS AND STARTUPS CREATE DIGITAL EXPERIENCES THAT FEEL CLEAR, MODERN, AND EFFORTLESS TO USE."';
 
-const services = [
-  {
-    index: "01/",
-    title: "FULL-STACK DEVELOPMENT",
-    desc: "Architecting responsive, high-performing websites and complex web applications built on secure, modular, and modern backend logic.",
-    tags: ["NEXT.JS", "REACT", "NODE.JS", "EXPRESS", "MONGODB", "POSTGRESQL", "ANGULAR"],
-    hoverImg: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070&auto=format&fit=crop"
-  },
-  {
-    index: "02/",
-    title: "AI INTEGRATION",
-    desc: "Deploying custom AI models, agentic workflows, and LLM orchestration layers to automate complex business processes and scale organizational intelligence.",
-    tags: ["AI AGENTS", "AUTOMATION", "LLMS", "WORKFLOWS", "API PIPELINES"],
-    hoverImg: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1965&auto=format&fit=crop"
-  },
-  {
-    index: "03/",
-    title: "MOBILE DEVELOPMENT",
-    desc: "Engineering fluid, native-grade iOS and Android mobile applications powered by scalable architectures for uninterrupted cross-platform performance.",
-    tags: ["REACT NATIVE", "CROSS-PLATFORM", "IOS", "ANDROID", "UX"],
-    hoverImg: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=2070&auto=format&fit=crop"
-  },
-  {
-    index: "04/",
-    title: "POS & SAAS PLATFORMS",
-    desc: "Designing complex multi-tenant Software-as-a-Service environments and enterprise-grade Point of Sale architectures optimized for high transaction throughput.",
-    tags: ["SAAS", "POS", "ENTERPRISE", "SECURITY", "MULTI-TENANT"],
-    hoverImg: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
-  }
-];
+// Fallback hover preview when a service has no image set in the DB.
+const FALLBACK_PREVIEW = '/assets/service.png';
 
-export const ServicesSection: React.FC = () => {
+// Server Component: fetches services from the Express API (1-hour ISR via
+// getServices). This section has no framer-motion — only CSS hover — so no
+// server/client split is needed; it renders directly on the server.
+export const ServicesSection: React.FC = async () => {
+  const apiServices = await getServices();
+
+  // Map API documents onto the row shape. `serviceImage` drives the hover
+  // preview; the editorial index ("01/") is derived from `order` (presentation).
+  const services = [...apiServices]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((s, i) => ({
+      index: `${String(s.order ?? i + 1).padStart(2, '0')}/`,
+      title: s.title,
+      desc: s.description,
+      tags: s.tags ?? [],
+      hoverImg: s.serviceImage || FALLBACK_PREVIEW,
+    }));
+
   return (
     <section id="services" className="w-full bg-[#050505] text-white">
       <div className="max-w-7xl mx-auto border-x border-b border-white/10">
@@ -62,7 +51,7 @@ export const ServicesSection: React.FC = () => {
             {/* Bottom Sub-block (Quote) */}
             <div className="p-8 md:p-12 border-t border-white/10 flex-grow flex items-end">
               <p className="max-w-md text-balance text-sm font-mono tracking-wide leading-relaxed text-zinc-400">
-                "I HELP BRANDS AND STARTUPS CREATE DIGITAL EXPERIENCES THAT FEEL CLEAR, MODERN, AND EFFORTLESS TO USE."
+                {QUOTE}
               </p>
             </div>
           </div>

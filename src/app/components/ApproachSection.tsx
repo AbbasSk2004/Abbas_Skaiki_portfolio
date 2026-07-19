@@ -1,39 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
+import { getApproach } from '@/api/public/approach';
 
-interface Phase {
-  index: string;
-  title: string;
-  desc: string;
-  active: number;
-}
-
-const phases: Phase[] = [
-  {
-    index: '01/',
-    title: 'DISCOVERY & INSIGHT',
-    desc: 'I start by understanding your world – your audience, your goals, and the challenges behind them.',
-    active: 1,
-  },
-  {
-    index: '02/',
-    title: 'STRUCTURE & STRATEGY',
-    desc: 'User flows, content direction, and the overall framework. This is where ideas take shape.',
-    active: 2,
-  },
-  {
-    index: '03/',
-    title: 'DESIGN & BUILD',
-    desc: 'I explore visuals and layouts that elevate your brand while staying aligned with your goals.',
-    active: 3,
-  },
-  {
-    index: '04/',
-    title: 'REFINE & FINALIZE',
-    desc: 'This final phase ensures everything feels cohesive, intuitive, and ready for real-world use.',
-    active: 4,
-  },
-];
+// Section-level heading, pull-quote, and image are presentation, not per-record
+// data — they never varied per step and were never seeded, so they stay here.
+const approachImage = '/assets/approach.png';
 
 // Four-dot progress indicator: `active` dots highlighted, the rest muted.
 const ProgressDots: React.FC<{ active: number }> = ({ active }) => (
@@ -59,8 +30,22 @@ const GridPlus: React.FC<{ className?: string }> = ({ className = '' }) => (
   </span>
 );
 
-// Static layout (data-driven, no hooks/events) → Server Component.
-export const ApproachSection: React.FC = () => {
+// Server Component: fetches the approach steps from the Express API (1-hour ISR
+// via getApproach). No framer-motion here, so it renders directly on the server.
+export const ApproachSection: React.FC = async () => {
+  const apiPhases = await getApproach();
+
+  // Sort by stepNumber and map onto the box shape. The editorial index ("01/")
+  // and the progress-dot count both derive from stepNumber (presentation).
+  const phases = [...apiPhases]
+    .sort((a, b) => a.stepNumber - b.stepNumber)
+    .map((p) => ({
+      index: `${String(p.stepNumber).padStart(2, '0')}/`,
+      title: p.title,
+      desc: p.description,
+      active: p.stepNumber,
+    }));
+
   return (
     <section id="approach" className="bg-[#050505] text-white">
       <div className="max-w-7xl mx-auto border-b border-white/10 relative">
@@ -92,7 +77,7 @@ export const ApproachSection: React.FC = () => {
           {/* Left Column: Image */}
           <div className="md:col-span-6 border-b md:border-b-0 md:border-r border-white/10 relative min-h-[300px] md:min-h-full md:h-auto">
             <Image
-              src="/assets/approach.png"
+              src={approachImage}
               alt="Creative approach visual"
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
@@ -100,79 +85,41 @@ export const ApproachSection: React.FC = () => {
             />
           </div>
 
-          {/* Right Column: 2x2 Phase Grid */}
+          {/* Right Column: 2x2 Phase Grid. Border pattern reproduces the original
+              hand-written boxes: box 0 gets bottom+right(sm), box 1 bottom,
+              box 2 bottom(mobile only)+right(sm), box 3 none. */}
           <div className="md:col-span-6 grid grid-cols-1 sm:grid-cols-2">
-            {/* Box 1 */}
-            <div className="border-b sm:border-r border-white/10 p-8 flex flex-col justify-between min-h-[250px] group hover:bg-white/[0.02] transition-colors">
-              <div className="flex flex-row items-center justify-between">
-                <span className="font-mono text-xs text-zinc-500">
-                  {phases[0].index}
-                </span>
-                <ProgressDots active={phases[0].active} />
-              </div>
-              <div>
-                <h3 className="font-mono text-sm text-white uppercase tracking-wider mb-2">
-                  {phases[0].title}
-                </h3>
-                <p className="font-mono text-[11px] text-zinc-400 uppercase tracking-normal leading-relaxed">
-                  {phases[0].desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Box 2 */}
-            <div className="border-b border-white/10 p-8 flex flex-col justify-between min-h-[250px] group hover:bg-white/[0.02] transition-colors">
-              <div className="flex flex-row items-center justify-between">
-                <span className="font-mono text-xs text-zinc-500">
-                  {phases[1].index}
-                </span>
-                <ProgressDots active={phases[1].active} />
-              </div>
-              <div>
-                <h3 className="font-mono text-sm text-white uppercase tracking-wider mb-2">
-                  {phases[1].title}
-                </h3>
-                <p className="font-mono text-[11px] text-zinc-400 uppercase tracking-normal leading-relaxed">
-                  {phases[1].desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Box 3 */}
-            <div className="border-b sm:border-b-0 sm:border-r border-white/10 p-8 flex flex-col justify-between min-h-[250px] group hover:bg-white/[0.02] transition-colors">
-              <div className="flex flex-row items-center justify-between">
-                <span className="font-mono text-xs text-zinc-500">
-                  {phases[2].index}
-                </span>
-                <ProgressDots active={phases[2].active} />
-              </div>
-              <div>
-                <h3 className="font-mono text-sm text-white uppercase tracking-wider mb-2">
-                  {phases[2].title}
-                </h3>
-                <p className="font-mono text-[11px] text-zinc-400 uppercase tracking-normal leading-relaxed">
-                  {phases[2].desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Box 4 */}
-            <div className="p-8 flex flex-col justify-between min-h-[250px] group hover:bg-white/[0.02] transition-colors">
-              <div className="flex flex-row items-center justify-between">
-                <span className="font-mono text-xs text-zinc-500">
-                  {phases[3].index}
-                </span>
-                <ProgressDots active={phases[3].active} />
-              </div>
-              <div>
-                <h3 className="font-mono text-sm text-white uppercase tracking-wider mb-2">
-                  {phases[3].title}
-                </h3>
-                <p className="font-mono text-[11px] text-zinc-400 uppercase tracking-normal leading-relaxed">
-                  {phases[3].desc}
-                </p>
-              </div>
-            </div>
+            {phases.map((phase, i) => {
+              const borders =
+                i === 0
+                  ? 'border-b sm:border-r'
+                  : i === 1
+                  ? 'border-b'
+                  : i === 2
+                  ? 'border-b sm:border-b-0 sm:border-r'
+                  : '';
+              return (
+                <div
+                  key={i}
+                  className={`${borders} border-white/10 p-8 flex flex-col justify-between min-h-[250px] group hover:bg-white/[0.02] transition-colors`}
+                >
+                  <div className="flex flex-row items-center justify-between">
+                    <span className="font-mono text-xs text-zinc-500">
+                      {phase.index}
+                    </span>
+                    <ProgressDots active={phase.active} />
+                  </div>
+                  <div>
+                    <h3 className="font-mono text-sm text-white uppercase tracking-wider mb-2">
+                      {phase.title}
+                    </h3>
+                    <p className="font-mono text-[11px] text-zinc-400 uppercase tracking-normal leading-relaxed">
+                      {phase.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

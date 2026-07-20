@@ -88,19 +88,51 @@ export async function apiFetch<T>(
   return body.data;
 }
 
-// One-hour ISR window shared by every public GET. Centralized so a global
-// cache-policy change is a single-line edit rather than a find-and-replace.
+// One-hour ISR window shared by every public GET. This is now the FALLBACK
+// refresh cadence: content is also revalidated ON DEMAND the instant an admin
+// saves (see /app/api/revalidate + the backend's revalidation ping), so the
+// long window is just a safety net, not the primary freshness mechanism.
 export const PUBLIC_REVALIDATE = 3600;
+
+// Single cache tag applied to every public GET. The on-demand revalidate route
+// invalidates this one tag, which drops the cached data for ALL public sections
+// at once — simpler and less error-prone than a per-section tag map, and fine
+// here because a content edit is rare and re-fetching a few small docs is cheap.
+export const PUBLIC_CACHE_TAG = 'public-content';
 
 /**
  * Convenience wrapper for GET requests — the only verb the public layer needs.
- * Forces method GET and defaults to the shared 1-hour ISR window, while still
- * letting callers override `next` (e.g. a different revalidate, or tags).
+ * Forces method GET and defaults to the shared ISR window + the shared cache
+ * tag, while still letting callers override `next` (e.g. a different revalidate,
+ * or additional tags).
  */
 export function apiGet<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+  const caller = options.next ?? {};
   return apiFetch<T>(path, {
     ...options,
     method: 'GET',
-    next: { revalidate: PUBLIC_REVALIDATE, ...(options.next ?? {}) },
+    next: {
+      revalidate: PUBLIC_REVALIDATE,
+      ...caller,
+      // Always include the shared tag, merging with any caller-supplied tags.
+      tags: [PUBLIC_CACHE_TAG, ...(caller.tags ?? [])],
+    },
   });
 }
+
+// -----------------------------------------------------------------------------
+// Admin sub-services, connected into the centralized entry point.
+//
+// Public callers keep importing apiFetch/apiGet from here as before. Admin
+// callers get a single namespaced surface:
+//
+//   import { admin } from '@/api/api';
+//   await admin.auth.login({ username, password });
+//   const projects = await admin.projects.list();
+//   const stats = await admin.stats.overview();
+//
+// The re-export lives at the bottom on purpose: the admin modules import
+// API_BASE_URL/ApiError from this file, and they only touch those at call time
+// (inside async functions), so this import cycle resolves cleanly under ESM.
+// -----------------------------------------------------------------------------
+export * as admin from './admin';

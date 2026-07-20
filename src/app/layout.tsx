@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { GridBackground } from './components/GridBackground';
-import { Navbar } from './components/Navbar';
-import { ContactFooterSection } from './components/ContactFooterSection';
+import { SiteChrome } from './components/SiteChrome';
 
 // Global SEO via the Next.js Metadata API. Page-level files can extend/override
 // individual fields (see works/[slug]/page.tsx for a dynamic example).
@@ -30,9 +28,12 @@ export const metadata: Metadata = {
   },
 };
 
-// The shared shell — formerly App.tsx's RootLayout. Every route renders inside
-// the same GridBackground > Navbar + <main> + ContactFooter chrome, defined in
-// exactly one place. The old react-router <Outlet /> is replaced by {children}.
+// The root layout stays intentionally bare: it owns only <html>/<body> and the
+// global brand background. Whether the public chrome (GridBackground + Navbar +
+// ContactFooter) renders is decided by <SiteChrome>, which strips it entirely
+// from /admin routes — so the admin console shares no nav/footer DOM with the
+// public site (fixes the layout bleed where the public navbar sat over the admin
+// top bar). Admin routes get their own chrome from app/admin/layout.tsx.
 export default function RootLayout({
   children,
 }: {
@@ -41,13 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen w-full bg-[#050505]">
-        <GridBackground>
-          <div className="relative w-full">
-            <Navbar />
-            <main className="relative w-full">{children}</main>
-            <ContactFooterSection />
-          </div>
-        </GridBackground>
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );

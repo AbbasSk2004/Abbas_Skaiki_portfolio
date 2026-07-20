@@ -2,9 +2,9 @@ import React from 'react';
 import Image from 'next/image';
 import { getApproach } from '@/api/public/approach';
 
-// Section-level heading, pull-quote, and image are presentation, not per-record
-// data — they never varied per step and were never seeded, so they stay here.
-const approachImage = '/assets/approach.png';
+// Fallback used when the Approach singleton has no section image set yet. The
+// image itself is now data (data.approachImage), so this is only a safety net.
+const FALLBACK_IMAGE = '/assets/approach.png';
 
 // Four-dot progress indicator: `active` dots highlighted, the rest muted.
 const ProgressDots: React.FC<{ active: number }> = ({ active }) => (
@@ -30,14 +30,17 @@ const GridPlus: React.FC<{ className?: string }> = ({ className = '' }) => (
   </span>
 );
 
-// Server Component: fetches the approach steps from the Express API (1-hour ISR
-// via getApproach). No framer-motion here, so it renders directly on the server.
+// Server Component: fetches the Approach singleton from the Express API (1-hour
+// ISR via getApproach). No framer-motion here, so it renders on the server.
 export const ApproachSection: React.FC = async () => {
-  const apiPhases = await getApproach();
+  const data = await getApproach();
 
-  // Sort by stepNumber and map onto the box shape. The editorial index ("01/")
-  // and the progress-dot count both derive from stepNumber (presentation).
-  const phases = [...apiPhases]
+  // The section image is now data; fall back to the bundled asset if unset.
+  const sectionImage = data?.approachImage || FALLBACK_IMAGE;
+
+  // Sort steps by stepNumber and map onto the box shape. The editorial index
+  // ("01/") and the progress-dot count both derive from stepNumber (presentation).
+  const phases = [...(data?.steps ?? [])]
     .sort((a, b) => a.stepNumber - b.stepNumber)
     .map((p) => ({
       index: `${String(p.stepNumber).padStart(2, '0')}/`,
@@ -77,7 +80,7 @@ export const ApproachSection: React.FC = async () => {
           {/* Left Column: Image */}
           <div className="md:col-span-6 border-b md:border-b-0 md:border-r border-white/10 relative min-h-[300px] md:min-h-full md:h-auto">
             <Image
-              src={approachImage}
+              src={sectionImage}
               alt="Creative approach visual"
               fill
               sizes="(max-width: 768px) 100vw, 50vw"

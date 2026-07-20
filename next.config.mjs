@@ -1,12 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // Project cover/gallery images are served from Unsplash. Allow that remote
-    // host so next/image can optimize them. Add more hosts here as needed.
+    // Remote hosts next/image is allowed to optimize. Unsplash serves the seed
+    // placeholders; res.cloudinary.com serves every admin-uploaded asset (hero,
+    // about, projects, services, approach, testimonials). Without the Cloudinary
+    // entry, next/image throws "hostname is not configured" in production the
+    // moment a real uploaded image is rendered.
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        // Scope to this project's asset tree so only our own uploads match.
+        pathname: '/**',
       },
     ],
   },

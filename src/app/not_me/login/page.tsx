@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
     setSubmitting(true);
     try {
       await login(username, password);
-      router.replace('/admin');
+      router.replace('/not_me');
     } catch (err) {
       // 401 → wrong credentials; anything else → surface the message we got.
       const msg =

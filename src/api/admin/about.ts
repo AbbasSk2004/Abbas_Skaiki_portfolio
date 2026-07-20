@@ -39,6 +39,6 @@ export const updateAbout = (input: AboutInput, file?: File | null) => {
   }
   return adminFetch<ApiAbout>('/api/admin/about', {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 };

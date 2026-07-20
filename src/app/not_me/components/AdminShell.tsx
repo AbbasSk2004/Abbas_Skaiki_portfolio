@@ -31,33 +31,33 @@ import { cn } from '@/app/lib/cn';
 const NAV: Array<{ group: string; items: Array<{ href: string; label: string }> }> = [
   {
     group: 'Overview',
-    items: [{ href: '/admin', label: 'Dashboard' }],
+    items: [{ href: '/not_me', label: 'Dashboard' }],
   },
   {
     group: 'Content',
     items: [
-      { href: '/admin/hero', label: 'Hero' },
-      { href: '/admin/about', label: 'About' },
-      { href: '/admin/projects', label: 'Projects' },
-      { href: '/admin/services', label: 'Services' },
-      { href: '/admin/approaches', label: 'Approach' },
-      { href: '/admin/driven-results', label: 'Results' },
-      { href: '/admin/tech-stacks', label: 'Tech Stacks' },
-      { href: '/admin/testimonials', label: 'Testimonials' },
+      { href: '/not_me/hero', label: 'Hero' },
+      { href: '/not_me/about', label: 'About' },
+      { href: '/not_me/projects', label: 'Projects' },
+      { href: '/not_me/services', label: 'Services' },
+      { href: '/not_me/approaches', label: 'Approach' },
+      { href: '/not_me/driven-results', label: 'Results' },
+      { href: '/not_me/tech-stacks', label: 'Tech Stacks' },
+      { href: '/not_me/testimonials', label: 'Testimonials' },
     ],
   },
   {
     group: 'Contact',
     items: [
-      { href: '/admin/contact', label: 'Contact Info' },
-      { href: '/admin/social-links', label: 'Social Links' },
+      { href: '/not_me/contact', label: 'Contact Info' },
+      { href: '/not_me/social-links', label: 'Social Links' },
     ],
   },
   {
     group: 'Inbox',
     items: [
-      { href: '/admin/inquiries', label: 'Inquiries' },
-      { href: '/admin/bookings', label: 'Bookings' },
+      { href: '/not_me/inquiries', label: 'Inquiries' },
+      { href: '/not_me/bookings', label: 'Bookings' },
     ],
   },
 ];
@@ -81,8 +81,8 @@ function NavLinks({
           </p>
           {section.items.map((item) => {
             const active =
-              item.href === '/admin'
-                ? pathname === '/admin'
+              item.href === '/not_me'
+                ? pathname === '/not_me'
                 : pathname.startsWith(item.href);
             return (
               <Link
@@ -109,7 +109,7 @@ function NavLinks({
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isLogin = pathname === '/admin/login';
+  const isLogin = pathname === '/not_me/login';
 
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [checking, setChecking] = useState(true);
@@ -128,7 +128,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         if (active) setAdmin(user);
       })
       .catch(() => {
-        if (active) router.replace('/admin/login');
+        if (active) router.replace('/not_me/login');
       })
       .finally(() => {
         if (active) setChecking(false);
@@ -170,7 +170,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     try {
       await logout();
     } finally {
-      router.replace('/admin/login');
+      router.replace('/not_me/login');
     }
   };
 

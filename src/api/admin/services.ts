@@ -51,7 +51,7 @@ export const createService = (input: ServiceInput, file?: File | null) => {
   }
   return adminFetch<ApiService>('/api/admin/services', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 };
 
@@ -65,7 +65,7 @@ export const updateService = (id: string, input: ServiceInput, file?: File | nul
   }
   return adminFetch<ApiService>(`/api/admin/services/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 };
 

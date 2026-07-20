@@ -25,14 +25,14 @@ export const getSocialLink = (id: string) =>
 export const createSocialLink = (input: SocialLinkInput) =>
   adminFetch<ApiSocialLink>('/api/admin/social-links', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 
 // PUT /api/admin/social-links/:id — update.
 export const updateSocialLink = (id: string, input: SocialLinkInput) =>
   adminFetch<ApiSocialLink>(`/api/admin/social-links/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 
 // DELETE /api/admin/social-links/:id — delete (no assets to clean up).

@@ -34,5 +34,5 @@ export const getContactInfo = () =>
 export const updateContactInfo = (input: ContactInput) =>
   adminFetch<ApiContactInfo>('/api/admin/contact', {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as unknown as Record<string, unknown>,
   });

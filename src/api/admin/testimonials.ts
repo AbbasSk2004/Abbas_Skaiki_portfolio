@@ -45,7 +45,7 @@ export const createTestimonial = (input: TestimonialInput, file?: File | null) =
   }
   return adminFetch<ApiTestimonial>('/api/admin/testimonials', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 };
 
@@ -63,7 +63,7 @@ export const updateTestimonial = (
   }
   return adminFetch<ApiTestimonial>(`/api/admin/testimonials/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 };
 

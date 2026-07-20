@@ -30,7 +30,7 @@ export const listBookings = (status?: BookingStatus) =>
 export const updateBookingStatus = (id: string, status: BookingStatus) =>
   adminFetch<ApiBooking>(`/api/admin/bookings/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ status }),
+    body: { status },
   });
 
 // DELETE /api/admin/bookings/:id — remove a booking.

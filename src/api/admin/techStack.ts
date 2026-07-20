@@ -32,14 +32,14 @@ export const getTechStack = (id: string) =>
 export const createTechStack = (input: TechStackInput) =>
   adminFetch<ApiTechStack>('/api/admin/tech-stacks', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 
 // PUT /api/admin/tech-stacks/:id — update.
 export const updateTechStack = (id: string, input: TechStackInput) =>
   adminFetch<ApiTechStack>(`/api/admin/tech-stacks/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 
 // DELETE /api/admin/tech-stacks/:id — delete (no assets to clean up).

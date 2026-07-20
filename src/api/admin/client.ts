@@ -34,13 +34,24 @@ export async function adminFetch<T>(
   const isFormData =
     typeof FormData !== 'undefined' && options.body instanceof FormData;
 
-  // Only JSON-encode plain objects. FormData and pre-encoded strings pass through.
+  // Normalize the body + Content-Type. FormData is left untouched so the browser
+  // can set its multipart boundary. Everything else that is JSON — whether a
+  // plain object we encode here, OR a string a service already ran through
+  // JSON.stringify — MUST carry `application/json`, or express.json() skips it,
+  // req.body arrives as {}, and singleton upserts become silent no-ops.
   let body = options.body as BodyInit | null | undefined;
   const headers: Record<string, string> = { ...(options.headers as Record<string, string>) };
 
-  if (body != null && !isFormData && typeof body === 'object' && !(body instanceof Blob)) {
-    body = JSON.stringify(body);
-    headers['Content-Type'] = 'application/json';
+  if (body != null && !isFormData && !(body instanceof Blob)) {
+    if (typeof body === 'object') {
+      // Plain object → encode + tag as JSON.
+      body = JSON.stringify(body);
+      headers['Content-Type'] = 'application/json';
+    } else if (typeof body === 'string' && !headers['Content-Type']) {
+      // Pre-encoded JSON string from a service. Without this header fetch would
+      // default to text/plain, which express.json() ignores → req.body = {}.
+      headers['Content-Type'] = 'application/json';
+    }
   }
   // NOTE: never set Content-Type for FormData — the boundary must be auto-set.
 

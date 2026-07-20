@@ -38,6 +38,6 @@ export const updateHero = (input: HeroInput, file?: File | null) => {
   }
   return adminFetch<ApiHero>('/api/admin/hero', {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 };

@@ -28,7 +28,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Admin routes render bare — the admin segment layout provides its own shell.
-  if (pathname?.startsWith('/admin')) {
+  if (pathname?.startsWith('/not_me')) {
     return <>{children}</>;
   }
 

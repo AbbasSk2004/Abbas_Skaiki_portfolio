@@ -28,14 +28,14 @@ export const getDrivenResult = (id: string) =>
 export const createDrivenResult = (input: DrivenResultInput) =>
   adminFetch<ApiDrivenResult>('/api/admin/driven-results', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 
 // PUT /api/admin/driven-results/:id — update.
 export const updateDrivenResult = (id: string, input: DrivenResultInput) =>
   adminFetch<ApiDrivenResult>(`/api/admin/driven-results/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as Record<string, unknown>,
   });
 
 // DELETE /api/admin/driven-results/:id — delete (no assets to clean up).

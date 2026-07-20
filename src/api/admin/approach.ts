@@ -52,6 +52,6 @@ export const updateApproach = (input: ApproachInput, file?: File | null) => {
   }
   return adminFetch<ApiApproach>('/api/admin/approaches', {
     method: 'PUT',
-    body: JSON.stringify(input),
+    body: input as unknown as Record<string, unknown>,
   });
 };

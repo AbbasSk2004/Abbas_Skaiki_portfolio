@@ -29,7 +29,7 @@ export const listInquiries = (status?: InquiryStatus) =>
 export const updateInquiryStatus = (id: string, status: InquiryStatus) =>
   adminFetch<ApiInquiry>(`/api/admin/inquiries/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ status }),
+    body: { status },
   });
 
 // DELETE /api/admin/inquiries/:id — remove an inquiry.

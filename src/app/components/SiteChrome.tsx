@@ -22,12 +22,24 @@
 import { usePathname } from 'next/navigation';
 import { GridBackground } from './GridBackground';
 import { Navbar } from './Navbar';
-import { ContactFooterSection } from './ContactFooterSection';
 
-export function SiteChrome({ children }: { children: React.ReactNode }) {
+// `footer` is passed in as a slot from the (server) root layout rather than
+// imported here. ContactFooterSection is an async Server Component; importing it
+// into this "use client" module would pull its `await getContactInfo()` into the
+// client bundle and crash with "async/await is not yet supported in Client
+// Components". Receiving it as a prop keeps that fetch on the server — the
+// footer is server-rendered and only *placed* by this client boundary.
+export function SiteChrome({
+  children,
+  footer,
+}: {
+  children: React.ReactNode;
+  footer: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   // Admin routes render bare — the admin segment layout provides its own shell.
+  // The footer slot is never placed here, so its server fetch is skipped on /not_me.
   if (pathname?.startsWith('/not_me')) {
     return <>{children}</>;
   }
@@ -38,7 +50,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <div className="relative w-full">
         <Navbar />
         <main className="relative w-full">{children}</main>
-        <ContactFooterSection />
+        {footer}
       </div>
     </GridBackground>
   );

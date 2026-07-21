@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { SiteChrome } from './components/SiteChrome';
+import { ContactFooterSection } from './components/ContactFooterSection';
 
 // Global SEO via the Next.js Metadata API. Page-level files can extend/override
 // individual fields (see works/[slug]/page.tsx for a dynamic example).
@@ -42,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen w-full bg-[#050505]">
-        <SiteChrome>{children}</SiteChrome>
+        <SiteChrome footer={<ContactFooterSection />}>{children}</SiteChrome>
       </body>
     </html>
   );

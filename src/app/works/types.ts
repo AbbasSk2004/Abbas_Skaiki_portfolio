@@ -52,7 +52,6 @@ export type Project = {
   /** One-line role summary shown in the header metadata column. */
   role: string;
   year: string;
-  client: string;
   /** Full tech-stack list for the metadata column (can differ from card tags). */
   stack: string[];
   /** "The Challenge" body copy. */

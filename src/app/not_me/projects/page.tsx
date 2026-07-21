@@ -69,14 +69,14 @@ export default function ProjectsAdminPage() {
     setModalOpen(true);
   };
 
-  const handleSubmit = async (input: ProjectInput, files: File[]) => {
+  const handleSubmit = async (input: ProjectInput, files: File[], coverFile: File | null) => {
     setBusy(true);
     try {
       if (editing) {
-        await updateProject(editing._id, input, files);
+        await updateProject(editing._id, input, files, coverFile);
         pushToast('ok', 'Project updated');
       } else {
-        await createProject(input, files);
+        await createProject(input, files, coverFile);
         pushToast('ok', 'Project created');
       }
       setModalOpen(false);
@@ -160,10 +160,10 @@ export default function ProjectsAdminPage() {
                 <tr key={p._id} className="group transition-colors hover:bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {p.images?.[0] ? (
+                      {p.coverImage || p.images?.[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={p.images[0]}
+                          src={p.coverImage || p.images[0]}
                           alt=""
                           className="h-9 w-9 shrink-0 rounded-[var(--radius-sm)] object-cover"
                         />
@@ -356,14 +356,13 @@ function ProjectModal({
   initial: ApiProject | null;
   busy: boolean;
   onClose: () => void;
-  onSubmit: (input: ProjectInput, files: File[]) => void;
+  onSubmit: (input: ProjectInput, files: File[], coverFile: File | null) => void;
 }) {
   const [form, setForm] = useState<ProjectInput>({
     title: initial?.title ?? '',
     slug: initial?.slug ?? '',
     category: initial?.category ?? '',
     tags: initial?.tags ?? [],
-    client: initial?.client ?? '',
     role: initial?.role ?? '',
     year: initial?.year,
     challenge: initial?.challenge ?? '',
@@ -371,11 +370,15 @@ function ProjectModal({
     stack: initial?.stack ?? [],
     liveUrl: initial?.liveUrl ?? '',
     githubUrl: initial?.githubUrl ?? '',
+    coverImage: initial?.coverImage ?? '',
     images: initial?.images ?? [],
     isPublished: initial?.isPublished ?? false,
     isFeatured: initial?.isFeatured ?? false,
   });
   const [files, setFiles] = useState<File[]>([]);
+  // A brand-new cover image to upload. Null means "keep whatever coverImage
+  // holds" (an existing URL, or '' if the admin cleared it).
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = <K extends keyof ProjectInput>(key: K, value: ProjectInput[K]) =>
@@ -384,6 +387,10 @@ function ProjectModal({
   // Drop a kept Cloudinary image from the set (the PUT will destroy it server-side).
   const removeExistingImage = (url: string) =>
     set('images', (form.images ?? []).filter((u) => u !== url));
+
+  // Drop the existing cover URL; server destroys it on save unless a new file
+  // replaces it. A locally-picked coverFile (below) takes precedence over this.
+  const removeCover = () => set('coverImage', '');
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -397,7 +404,7 @@ function ProjectModal({
   const submit = (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validate()) return;
-    onSubmit(form, files);
+    onSubmit(form, files, coverFile);
   };
 
   return (
@@ -443,9 +450,6 @@ function ProjectModal({
               value={form.year != null ? String(form.year) : ''}
               onChange={(v) => set('year', v ? Number(v) : undefined)}
             />
-          </Field>
-          <Field label="Client">
-            <Input value={form.client ?? ''} onChange={(v) => set('client', v)} />
           </Field>
           <Field label="Role">
             <Input value={form.role ?? ''} onChange={(v) => set('role', v)} />
@@ -495,7 +499,77 @@ function ProjectModal({
           />
         </div>
 
-        {/* Existing images (kept unless removed) */}
+        {/* Cover image — dedicated single thumbnail used on cards + case-study
+            hero. Kept visually separate from the multi-image gallery below. */}
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <p className="mb-2 font-mono text-[11px] uppercase tracking-widest text-zinc-500">
+            Cover image
+          </p>
+          <p className="mb-3 text-xs text-zinc-500">
+            The thumbnail shown on listing cards and the case-study header. One image.
+          </p>
+          <div className="flex items-start gap-4">
+            {/* Preview: a freshly picked file wins over the stored URL. */}
+            {coverFile ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={URL.createObjectURL(coverFile)}
+                  alt=""
+                  className="h-24 w-24 rounded-[var(--radius-sm)] object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCoverFile(null)}
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--destructive)] text-white"
+                  aria-label="Clear selected cover"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            ) : form.coverImage ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={form.coverImage}
+                  alt=""
+                  className="h-24 w-24 rounded-[var(--radius-sm)] object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={removeCover}
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--destructive)] text-white"
+                  aria-label="Remove cover image"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-dashed border-white/15 bg-white/[0.02] font-mono text-[10px] uppercase tracking-widest text-zinc-600">
+                None
+              </span>
+            )}
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
+                className="block w-full font-mono text-xs text-zinc-400 file:mr-3 file:rounded-[var(--radius-sm)] file:border-0 file:bg-white/10 file:px-3 file:py-2 file:font-mono file:text-[11px] file:uppercase file:tracking-widest file:text-white hover:file:bg-white/20"
+              />
+              {coverFile && (
+                <p className="mt-2 font-mono text-[11px] text-zinc-500">
+                  New cover ready to upload — replaces the current one on save.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Existing gallery images (kept unless removed) */}
         {(form.images ?? []).length > 0 && (
           <div className="mt-4">
             <p className="mb-2 font-mono text-[11px] uppercase tracking-widest text-zinc-500">
@@ -522,10 +596,10 @@ function ProjectModal({
           </div>
         )}
 
-        {/* New uploads */}
+        {/* New gallery uploads */}
         <div className="mt-4">
           <p className="mb-2 font-mono text-[11px] uppercase tracking-widest text-zinc-500">
-            Add images
+            Add gallery images
           </p>
           <input
             type="file"

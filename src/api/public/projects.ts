@@ -9,7 +9,6 @@ export type ApiProject = {
   slug: string;
   category?: string;
   tags: string[];
-  client?: string;
   role?: string;
   year?: number;
   challenge?: string;
@@ -17,6 +16,9 @@ export type ApiProject = {
   stack: string[];
   liveUrl?: string;
   githubUrl?: string;
+  /** Dedicated card/hero thumbnail (Cloudinary URL). '' when unset. */
+  coverImage?: string;
+  /** Detail-page gallery images (cover lives in coverImage). */
   images: string[];
   isPublished?: boolean;
   isFeatured?: boolean;

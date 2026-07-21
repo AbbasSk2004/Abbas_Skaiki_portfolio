@@ -68,10 +68,11 @@ const DEFAULT_HINT: LayoutHint = {
 /**
  * Merge an API project document with its frontend layout hints.
  *
- * Image reconstruction: the backend stores `images: [cover, ...gallery]`
- * (see back/config/seed.js), so the cover is `images[0]` and the detail-page
- * gallery is `images.slice(1)` — this reproduces the original component data
- * exactly.
+ * Cover vs. gallery: the backend now stores a dedicated `coverImage` (card /
+ * hero thumbnail) separately from `images` (the detail-page gallery). The card
+ * `image` maps from `coverImage`, falling back to the first gallery image for
+ * any legacy doc that predates the split; the gallery maps straight from
+ * `images`.
  */
 export function mapApiProject(api: ApiProject): Project {
   const hint = LAYOUT_HINTS[api.slug] ?? DEFAULT_HINT;
@@ -81,17 +82,16 @@ export function mapApiProject(api: ApiProject): Project {
     title: api.title,
     category: api.category ?? '',
     tags: api.tags ?? [],
-    image: api.images?.[0] ?? '',
+    image: api.coverImage || api.images?.[0] || '',
     span: hint.span,
     aspect: hint.aspect,
     titleSize: hint.titleSize,
     role: api.role ?? '',
     year: api.year != null ? String(api.year) : '',
-    client: api.client ?? '',
     stack: api.stack ?? [],
     challenge: api.challenge ?? '',
     solution: api.solution ?? '',
-    gallery: api.images?.slice(1) ?? [],
+    gallery: api.images ?? [],
     liveUrl: api.liveUrl ?? '',
     githubUrl: api.githubUrl ?? '',
   };

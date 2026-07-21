@@ -19,6 +19,12 @@ export const TestimonialsCarousel: React.FC<{ testimonials: TestimonialItem[] }>
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Defense-in-depth: the server wrapper (TestimonialsSection) already hides
+  // the section when the array is empty, but a direct caller passing an empty
+  // array must not crash on `active.quote` below. Keep the guard after the
+  // useState call so hook order stays stable regardless of input.
+  if (!testimonials.length) return null;
+
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
   };

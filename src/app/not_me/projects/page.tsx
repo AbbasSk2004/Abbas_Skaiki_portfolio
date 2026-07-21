@@ -130,6 +130,7 @@ export default function ProjectsAdminPage() {
           <thead>
             <tr className="border-b border-white/10 bg-white/[0.02] font-mono text-[10px] uppercase tracking-widest text-zinc-500">
               <th className="px-4 py-3 font-medium">Title</th>
+              <th className="px-4 py-3 font-medium">Status</th>
               <th className="hidden px-4 py-3 font-medium sm:table-cell">Category</th>
               <th className="hidden px-4 py-3 font-medium md:table-cell">Year</th>
               <th className="hidden px-4 py-3 font-medium md:table-cell">Images</th>
@@ -140,7 +141,7 @@ export default function ProjectsAdminPage() {
             {loading &&
               Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i}>
-                  <td className="px-4 py-4" colSpan={5}>
+                  <td className="px-4 py-4" colSpan={6}>
                     <span className="inline-block h-4 w-full max-w-sm animate-pulse rounded bg-white/10" />
                   </td>
                 </tr>
@@ -148,7 +149,7 @@ export default function ProjectsAdminPage() {
 
             {!loading && projects.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center font-mono text-xs text-zinc-500">
+                <td colSpan={6} className="px-4 py-10 text-center font-mono text-xs text-zinc-500">
                   No projects yet. Create your first one.
                 </td>
               </tr>
@@ -173,6 +174,24 @@ export default function ProjectsAdminPage() {
                         <p className="truncate text-sm text-white">{p.title}</p>
                         <p className="truncate font-mono text-[10px] text-zinc-600">/{p.slug}</p>
                       </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {p.isPublished ? (
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-emerald-400">
+                          Published
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-400">
+                          Draft
+                        </span>
+                      )}
+                      {p.isFeatured && (
+                        <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-300">
+                          ★ Featured
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 sm:table-cell">
@@ -353,6 +372,8 @@ function ProjectModal({
     liveUrl: initial?.liveUrl ?? '',
     githubUrl: initial?.githubUrl ?? '',
     images: initial?.images ?? [],
+    isPublished: initial?.isPublished ?? false,
+    isFeatured: initial?.isFeatured ?? false,
   });
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -456,6 +477,22 @@ function ProjectModal({
           <Field label="Solution">
             <Textarea value={form.solution ?? ''} onChange={(v) => set('solution', v)} />
           </Field>
+        </div>
+
+        {/* Visibility controls */}
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Toggle
+            label="Status"
+            description={form.isPublished ? 'Published — live on the site' : 'Draft — hidden from the public'}
+            checked={!!form.isPublished}
+            onChange={(v) => set('isPublished', v)}
+          />
+          <Toggle
+            label="Homepage visibility"
+            description={form.isFeatured ? 'Featured in Selected Works' : 'Not featured on the homepage'}
+            checked={!!form.isFeatured}
+            onChange={(v) => set('isFeatured', v)}
+          />
         </div>
 
         {/* Existing images (kept unless removed) */}
@@ -577,5 +614,51 @@ function Textarea({ value, onChange }: { value: string; onChange: (v: string) =>
       rows={3}
       className="w-full resize-y rounded-[var(--radius-md)] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-white/30"
     />
+  );
+}
+
+// Labeled on/off switch styled to the theme tokens. Used for the Draft/Published
+// and Featured visibility controls.
+function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex w-full items-center justify-between gap-3 rounded-[var(--radius-md)] border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left transition-colors hover:border-white/20"
+    >
+      <span className="min-w-0">
+        <span className="block font-mono text-[11px] uppercase tracking-widest text-zinc-400">
+          {label}
+        </span>
+        {description && (
+          <span className="mt-0.5 block truncate text-xs text-zinc-500">{description}</span>
+        )}
+      </span>
+      <span
+        className={cn(
+          'relative h-5 w-9 shrink-0 rounded-full transition-colors',
+          checked ? 'bg-white' : 'bg-white/15'
+        )}
+      >
+        <span
+          className={cn(
+            'absolute top-0.5 h-4 w-4 rounded-full transition-transform',
+            checked ? 'left-0.5 translate-x-4 bg-black' : 'left-0.5 bg-white'
+          )}
+        />
+      </span>
+    </button>
   );
 }

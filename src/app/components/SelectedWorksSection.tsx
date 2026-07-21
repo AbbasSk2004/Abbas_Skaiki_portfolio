@@ -2,17 +2,17 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
-import { getProjects } from '@/api/public/projects';
+import { getFeaturedProjects } from '@/api/public/projects';
 import { mapApiProject, sortByIndex } from '../works/projectLayout';
 
-// The home page teaser shows only the first three projects; the full set lives
-// on /works. Data comes from the Express API (1-hour ISR via getProjects) and
-// is sorted into the same editorial order as the works index, so the featured
-// three always match the top of /works.
+// The home page teaser shows only featured projects (up to three); the full set
+// lives on /works. Data comes from the Express API (1-hour ISR via
+// getFeaturedProjects, which requests ?featured=true) and is sorted into the
+// same editorial order as the works index.
 //
 // Async Server Component — no client state, links are next/link.
 export const SelectedWorksSection: React.FC = async () => {
-  const featured = sortByIndex((await getProjects()).map(mapApiProject)).slice(0, 3);
+  const featured = sortByIndex((await getFeaturedProjects()).map(mapApiProject)).slice(0, 3);
 
   return (
     <section id="selected-works" className="w-full bg-[#050505] text-white">

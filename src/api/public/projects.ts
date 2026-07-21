@@ -18,13 +18,23 @@ export type ApiProject = {
   liveUrl?: string;
   githubUrl?: string;
   images: string[];
+  isPublished?: boolean;
+  isFeatured?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
 
-// GET /api/projects — all projects, newest first (served by projectRoutes).
+// GET /api/projects — published projects, newest first (served by projectRoutes).
 export const getProjects = () =>
   apiGet<ApiProject[]>('/api/projects', { next: { revalidate: 3600 } });
+
+// GET /api/projects?featured=true — published AND featured projects, for the
+// homepage "Selected Works" section. Shares the same ISR window + cache tag as
+// getProjects, so an admin toggling isFeatured triggers on-demand revalidation.
+export const getFeaturedProjects = () =>
+  apiGet<ApiProject[]>('/api/projects?featured=true', {
+    next: { revalidate: 3600 },
+  });
 
 // GET /api/portfolio-projects/slug/:slug — single project by slug.
 // NOTE: the backend serves the slug lookup under /api/portfolio-projects, NOT

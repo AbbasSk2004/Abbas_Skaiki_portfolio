@@ -24,6 +24,8 @@ export type ProjectInput = {
   liveUrl?: string;
   githubUrl?: string;
   images?: string[];
+  isPublished?: boolean;
+  isFeatured?: boolean;
 };
 
 // Build a multipart body when there are files to upload, otherwise send JSON.

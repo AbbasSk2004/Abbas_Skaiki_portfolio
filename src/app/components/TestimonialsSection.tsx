@@ -1,12 +1,25 @@
-import { getTestimonials } from '@/api/public/testimonials';
+import { getTestimonials, type ApiTestimonial } from '@/api/public/testimonials';
 import { TestimonialsCarousel, type TestimonialItem } from './TestimonialsCarousel';
 
 // Server Component: fetches testimonials from the Express API (1-hour ISR via
 // getTestimonials) and hands plain data to the client carousel, where the
 // prev/next state lives. Splitting this way keeps `revalidate` working while
 // preserving the client-only carousel interactivity.
+//
+// Defensive: testimonials are non-critical social proof, not page scaffolding.
+// If the API is down or returns 5xx (apiGet throws ApiError), we log and render
+// nothing rather than crash the whole landing page — same pattern as
+// ContactFooterSection. The section self-heals within seconds of an admin
+// creating the first testimonial: the backend pings /api/revalidate on every
+// successful write (routes/admin/index.js), dropping the ISR cache.
 export const TestimonialsSection: React.FC = async () => {
-  const apiTestimonials = await getTestimonials();
+  let apiTestimonials: ApiTestimonial[] = [];
+  try {
+    apiTestimonials = await getTestimonials();
+  } catch (err) {
+    console.error('[testimonials] Failed to load testimonials; hiding section:', err);
+    return null;
+  }
 
   // Map API documents onto the carousel shape. `clientName` -> author; `role`
   // and `company` combine into the sub-line the design shows (e.g.

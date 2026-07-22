@@ -145,14 +145,15 @@ export function ProjectDetails({
               whileInView={{ opacity: 1 }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.7 }}
-              className="relative aspect-[16/10] w-full overflow-hidden border-b border-white/10 bg-zinc-900 last:border-b-0"
+              className="w-full border-b border-white/10 last:border-b-0"
             >
               <Image
                 src={src}
                 alt={`${project.title} — view ${i + 1}`}
-                fill
-                sizes="(max-width: 768px) 100vw, 66vw"
-                className="object-cover"
+                width={0}
+                height={0}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="w-full h-auto block"
               />
             </motion.div>
           ))}

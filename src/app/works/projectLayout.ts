@@ -57,10 +57,12 @@ const LAYOUT_HINTS: Record<string, LayoutHint> = {
 };
 
 // Fallback for any project added via the DB/admin panel that has no layout hint
-// yet — a safe, single-column block so new rows render rather than crash.
+// yet. `span` is intentionally left empty so the listing grid derives an
+// index-based wide/narrow rhythm for it (see WorksList), rather than pinning
+// every new row to one uniform width.
 const DEFAULT_HINT: LayoutHint = {
   index: '—',
-  span: 'md:col-span-2',
+  span: '',
   aspect: 'aspect-[4/5]',
   titleSize: 'text-3xl md:text-5xl',
 };

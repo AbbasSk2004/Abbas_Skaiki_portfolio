@@ -57,27 +57,31 @@ export function ProjectDetails({
       </div>
 
       {/* --- Hero Header (grid based) ------------------------------------ */}
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 border-b border-white/10 md:grid-cols-4">
-        {/* Left: title container (2 of 4 cols) — halves the header height so
-            the dead space above the title collapses */}
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 border-b border-white/10 md:grid-cols-12">
+        {/* Left: title container (8 of 12 cols) — widens the title cell so long
+            project names have room to breathe, and halves the header height so
+            the dead space above the title collapses. min-w-0 lets the column
+            shrink below its content's intrinsic width (prevents grid blow-out),
+            and break-words keeps a single long word from overflowing. */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col justify-end border-b border-white/10 p-6 py-16 md:col-span-2 md:border-b-0 md:border-r md:p-12 md:py-16 lg:p-16"
+          className="flex min-w-0 flex-col justify-end border-b border-white/10 p-6 py-16 md:col-span-8 md:border-b-0 md:border-r md:p-12 md:py-16 lg:p-16"
         >
           <span className="mb-6 font-mono text-[10px] uppercase tracking-widest text-zinc-500 md:text-xs">
-            {project.index} / {project.category}
+            / {project.category}
           </span>
-          <h1 className="font-['Space_Grotesk'] text-5xl font-bold uppercase leading-[0.85] tracking-tighter text-zinc-100 md:text-7xl lg:text-[6rem]">
+          <h1 className="break-words font-['Space_Grotesk'] text-5xl font-bold uppercase leading-[0.85] tracking-tighter text-zinc-100 md:text-7xl lg:text-8xl">
             {project.title}
           </h1>
         </motion.div>
 
-        {/* Right: asymmetric metadata split (2 of 4 cols). ROLE / YEAR sit as a
+        {/* Right: asymmetric metadata split (4 of 12 cols). ROLE / YEAR sit as a
             1×2 row on mobile (no dead vertical space), then stack into a 50/50
-            flex column on desktop; TECH STACK runs full-height alongside. */}
-        <div className="grid grid-cols-1 md:col-span-2 md:grid-cols-2">
+            flex column on desktop; TECH STACK runs full-height alongside. With
+            the 12-col outer grid this gives Role ~2/12 and Tech Stack ~2/12. */}
+        <div className="grid grid-cols-1 md:col-span-4 md:grid-cols-2">
           {/* ROLE & YEAR — grid row on mobile, flex column on desktop */}
           <div className="grid grid-cols-2 border-white/10 md:flex md:flex-col md:border-r">
             {/* ROLE */}

@@ -34,32 +34,38 @@ const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      className={`group relative col-span-1 block border border-white/10 bg-[#050505] ${project.span}`}
+      // Intrinsic height only: `h-fit self-start` keeps the card at its natural
+      // image + text height so it never stretches to match a taller neighbour.
+      // Structural borders + crosshairs live on the parent cell, not here.
+      //
+      // `flex flex-col` + `md:max-h-[80vh]` caps the card on desktop so tall
+      // portraits stay within one viewport. Only the image wrapper below shrinks
+      // to absorb the ceiling (grow-0/shrink-1/basis-auto + min-h-0); the text
+      // row is `shrink-0`, so the title and tags are never squeezed or clipped.
+      className="group relative flex h-fit w-full flex-col self-start overflow-hidden bg-[#050505] md:max-h-[80vh]"
     >
-      {/* Blueprint crosshairs at every corner of the block */}
-      <Crosshair className="left-0 top-0" />
-      <Crosshair className="right-0 top-0" />
-      <Crosshair className="bottom-0 left-0" />
-      <Crosshair className="bottom-0 right-0" />
-
-      {/* The Image Cell — full-bleed within its own cell, hover reveals colour */}
-      <div className={`relative w-full overflow-hidden border-b border-white/10 bg-zinc-900 ${project.aspect}`}>
+      {/* The Image Cell — full-bleed within its own cell, hover reveals colour.
+          Keeps its aspect ratio as the natural (mobile / un-capped) height, but
+          `md:min-h-0` lets it crop instead of squish when the 80vh cap bites. */}
+      <div className={`relative w-full overflow-hidden border-b border-white/10 bg-zinc-900 md:min-h-0 ${project.aspect}`}>
         <Image
           src={project.image}
           alt={project.title}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover opacity-80 grayscale transition-all duration-700 ease-out group-hover:scale-[1.04] group-hover:opacity-100 group-hover:grayscale-0"
+          className="object-cover object-center opacity-80 grayscale transition-all duration-700 ease-out group-hover:scale-[1.04] group-hover:opacity-100 group-hover:grayscale-0"
         />
         <div className="absolute inset-0 bg-black/20 transition-colors duration-700 group-hover:bg-transparent" />
-        {/* Index marker — editorial detail, top-left of the frame */}
+        {/* Category marker — editorial detail, top-left of the frame */}
         <span className="absolute left-4 top-4 z-10 font-mono text-[10px] uppercase tracking-widest text-white/70 sm:text-xs">
-          {project.index} / {project.category}
+          / {project.category}
         </span>
       </div>
 
-      {/* The Metadata Row — title left, tags right, split by a vertical border */}
-      <div className="grid grid-cols-2 transition-colors group-hover:bg-white/[0.02]">
+      {/* The Metadata Row — title left, tags right, split by a vertical border.
+          `shrink-0` keeps it at its natural height so the 80vh cap only ever
+          eats into the image above, never the labels. */}
+      <div className="grid shrink-0 grid-cols-2 transition-colors group-hover:bg-white/[0.02]">
         {/* Left cell: massive uppercase title */}
         <div className="flex items-center p-6 md:p-8">
           <h3 className={`font-['Space_Grotesk'] font-bold uppercase leading-none tracking-tight text-zinc-100 ${project.titleSize}`}>
@@ -81,6 +87,23 @@ const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
     </MotionLink>
   );
 };
+
+// A structural grid cell. This — NOT the card — is the direct grid item, so it
+// carries the span, the architectural border walls, and the blueprint
+// crosshairs. Because grid items stretch by default, a half-filled cell keeps
+// its full-height borders even when the card inside only takes its natural
+// height. `content-start` pins the card to the top so the empty space sits
+// below it, framed by the cell walls.
+const GridCell: React.FC<{ span: string; children: React.ReactNode }> = ({ span, children }) => (
+  <div className={`relative col-span-1 grid content-start border border-white/10 ${span}`}>
+    {/* Blueprint crosshairs at every corner of the cell */}
+    <Crosshair className="left-0 top-0" />
+    <Crosshair className="right-0 top-0" />
+    <Crosshair className="bottom-0 left-0" />
+    <Crosshair className="bottom-0 right-0" />
+    {children}
+  </div>
+);
 
 // Receives the already-fetched, already-merged projects from the server page.
 export function WorksList({ projects }: { projects: Project[] }) {
@@ -112,11 +135,23 @@ export function WorksList({ projects }: { projects: Project[] }) {
         </motion.p>
       </div>
 
-      {/* The Asymmetrical Staggered Grid — collapses to a single column on mobile */}
-      <div className="grid grid-cols-1 gap-x-6 gap-y-16 md:grid-cols-4 md:gap-y-24">
-        {projects.map((project) => (
-          <ProjectBlock key={project.slug} project={project} />
-        ))}
+      {/* The Asymmetrical Staggered Grid — collapses to a single column on
+          mobile. Grid lines live on the GridCell wrappers (which stretch to the
+          row height) so a short card never inherits dead space; the card inside
+          each cell keeps its intrinsic height. */}
+      <div className="grid grid-cols-1 items-start gap-x-6 gap-y-16 md:grid-cols-4 md:gap-y-24">
+        {projects.map((project, index) => {
+          // Prefer the designed per-slug span; otherwise fall back to an
+          // index-based wide/narrow alternation so hint-less (DB-added)
+          // projects still read as an editorial bento rather than a uniform run.
+          const span =
+            project.span || (index % 2 === 0 ? 'md:col-span-3' : 'md:col-span-1');
+          return (
+            <GridCell key={project.slug} span={span}>
+              <ProjectBlock project={project} />
+            </GridCell>
+          );
+        })}
       </div>
 
       {/* Footer marker */}

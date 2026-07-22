@@ -34,22 +34,29 @@ export const SelectedWorksSection: React.FC = async () => {
             <Link
               key={project.slug}
               href={`/works/${project.slug}`}
-              className="min-w-[90vw] md:min-w-[33.333%] snap-start border-r border-white/10 last:border-r-0 flex flex-col group cursor-pointer"
+              // The <a> is the flex item, so it stretches to the tallest card in
+              // the row. Put the hover glow HERE (not on the inner text row) and
+              // add h-full so the glow fills the entire cell — including the
+              // empty space below a short card — rather than stopping at the
+              // intrinsic content height.
+              className="group flex min-w-[90vw] cursor-pointer flex-col border-r border-white/10 snap-start transition-colors last:border-r-0 hover:bg-white/[0.02] md:h-full md:min-w-[33.333%]"
             >
-              {/* Top Half (Cover Image) */}
-              <div className="h-[400px] bg-zinc-900 relative overflow-hidden border-b border-white/10">
+              {/* Top Half (Cover Image) — fixed height, never stretches */}
+              <div className="h-[400px] shrink-0 bg-zinc-900 relative overflow-hidden border-b border-white/10">
                 <Image
                   src={project.image}
                   alt={project.title}
                   fill
                   sizes="(max-width: 768px) 90vw, 33vw"
-                  className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
+                  className="object-cover object-center grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
               </div>
 
-              {/* Bottom Half (title left, tags right) */}
-              <div className="grid grid-cols-2 p-6 md:p-8 bg-[#050505] group-hover:bg-white/[0.02] transition-colors">
+              {/* Bottom Half (title left, tags right). Transparent — the hover
+                  glow lives on the parent <a>, so the empty space beneath a
+                  short card glows too instead of leaving a dark gap. */}
+              <div className="grid grid-cols-2 p-6 md:p-8">
                 <div className="flex items-center">
                   <h3 className="text-2xl md:text-3xl font-bold uppercase tracking-tight font-['Space_Grotesk']">
                     {project.title}
@@ -69,7 +76,7 @@ export const SelectedWorksSection: React.FC = async () => {
         <div className="col-span-12 grid grid-cols-12 w-full gap-6 p-6 md:p-12 border-t border-white/10">
           <div className="col-span-12 md:col-span-6 flex items-center">
             <p className="text-sm text-zinc-400 leading-relaxed max-w-md font-['Inter']">
-              A curated selection of my latest work. Showcasing precision execution, technical depth, and a commitment to high-end digital aesthetics.
+              These selected projects reflect my approach to clarity, usability and design. You can explore additional case studies and work examples.
             </p>
           </div>
           <div className="col-span-12 md:col-span-6 flex justify-start md:justify-end items-center">

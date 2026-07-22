@@ -110,7 +110,7 @@ export const Navbar: React.FC = () => {
           <div className="md:col-span-3 flex items-center justify-between md:justify-start px-6 md:px-8 md:border-r border-white/10">
             <Link href="/" className="group flex items-center" onClick={closeMenu}>
               <motion.img
-                src="/assets/logo.png"
+                src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png"
                 alt="Abbas Skaiki logo"
                 className="h-9 w-9 object-contain"
                 whileHover={{ rotate: 360 }}

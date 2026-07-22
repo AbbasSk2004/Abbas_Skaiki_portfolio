@@ -5,12 +5,12 @@ import { getServices } from '@/api/public/services';
 
 // Section-level hero image and the pull-quote are presentation, not per-record
 // data — they never varied per service and were never seeded, so they stay here.
-const heroImage = '/assets/service.png';
+const heroImage = 'https://res.cloudinary.com/duacqzjyv/image/upload/v1784727527/service_qtjwkp.avif';
 const QUOTE =
   '"I HELP BRANDS AND STARTUPS CREATE DIGITAL EXPERIENCES THAT FEEL CLEAR, MODERN, AND EFFORTLESS TO USE."';
 
 // Fallback hover preview when a service has no image set in the DB.
-const FALLBACK_PREVIEW = '/assets/service.png';
+const FALLBACK_PREVIEW = 'https://res.cloudinary.com/duacqzjyv/image/upload/v1784727527/service_qtjwkp.avif';
 
 // Server Component: fetches services from the Express API (1-hour ISR via
 // getServices). This section has no framer-motion — only CSS hover — so no

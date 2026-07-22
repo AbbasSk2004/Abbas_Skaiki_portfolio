@@ -179,7 +179,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar — md+ only, unchanged. */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-white/10 md:flex">
         <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
-          <img src="/assets/logo.png" alt="" className="h-8 w-8 object-contain" />
+          <img src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" className="h-8 w-8 object-contain" />
           <span className="font-['Space_Grotesk'] text-sm font-bold uppercase tracking-widest">
             Admin
           </span>
@@ -212,7 +212,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
                 <div className="flex items-center gap-3">
-                  <img src="/assets/logo.png" alt="" className="h-7 w-7 object-contain" />
+                  <img src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" className="h-7 w-7 object-contain" />
                   <span className="font-['Space_Grotesk'] text-sm font-bold uppercase tracking-widest">
                     Admin
                   </span>

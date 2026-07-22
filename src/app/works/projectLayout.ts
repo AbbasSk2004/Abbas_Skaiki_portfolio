@@ -28,19 +28,19 @@ const LAYOUT_HINTS: Record<string, LayoutHint> = {
     index: '01',
     span: 'md:col-span-4',
     aspect: 'aspect-[16/10] md:aspect-[21/9]',
-    titleSize: 'text-4xl md:text-7xl',
+    titleSize: 'text-2xl md:text-7xl',
   },
   libro: {
     index: '02',
     span: 'md:col-span-2',
     aspect: 'aspect-[4/5]',
-    titleSize: 'text-3xl md:text-5xl',
+    titleSize: 'text-2xl md:text-5xl',
   },
   dibeh: {
     index: '03',
     span: 'md:col-start-2 md:col-span-3',
     aspect: 'aspect-[16/9]',
-    titleSize: 'text-3xl md:text-6xl',
+    titleSize: 'text-2xl md:text-6xl',
   },
   glidex: {
     index: '04',
@@ -52,7 +52,7 @@ const LAYOUT_HINTS: Record<string, LayoutHint> = {
     index: '05',
     span: 'md:col-span-3',
     aspect: 'aspect-[16/10]',
-    titleSize: 'text-3xl md:text-5xl',
+    titleSize: 'text-2xl md:text-5xl',
   },
 };
 

@@ -64,16 +64,21 @@ const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
 
       {/* The Metadata Row — title left, tags right, split by a vertical border.
           `shrink-0` keeps it at its natural height so the 80vh cap only ever
-          eats into the image above, never the labels. */}
-      <div className="grid shrink-0 grid-cols-2 transition-colors group-hover:bg-white/[0.02]">
+          eats into the image above, never the labels.
+          Mobile-first: stacks into a single full-width column (`flex-col`, no
+          divider) so the large title can't overflow into the tags; the original
+          two-column grid + `border-l` separator is restored at `md:`. */}
+      <div className="flex shrink-0 flex-col transition-colors group-hover:bg-white/[0.02] md:grid md:grid-cols-2">
         {/* Left cell: massive uppercase title */}
-        <div className="flex items-center p-6 md:p-8">
+        <div className="flex items-center p-6 pb-2 md:p-8">
           <h3 className={`font-['Space_Grotesk'] font-bold uppercase leading-none tracking-tight text-zinc-100 ${project.titleSize}`}>
             {project.title}
           </h3>
         </div>
-        {/* Right cell: stacked monospace tags */}
-        <div className="flex flex-col items-end justify-center gap-1 border-l border-white/10 p-6 text-right md:p-8">
+        {/* Right cell: stacked monospace tags — left-aligned when stacked on
+            mobile, right-aligned in the two-column layout at `md:`; the vertical
+            separator only appears at `md:`. */}
+        <div className="flex flex-col items-start justify-center gap-1 border-white/10 p-6 pt-2 text-left md:items-end md:border-l md:p-8 md:pt-8 md:text-right">
           {project.tags.map((tag) => (
             <span
               key={tag}

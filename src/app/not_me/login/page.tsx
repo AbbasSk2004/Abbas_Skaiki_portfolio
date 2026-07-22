@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-8 flex items-center gap-3">
-          <img src="/assets/logo.png" alt="" className="h-9 w-9 object-contain" />
+          <img src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" className="h-9 w-9 object-contain" />
           <div className="flex flex-col font-['Space_Grotesk'] text-sm font-bold uppercase leading-[1.1] tracking-wide text-white">
             <span>Abbas Skaiki</span>
             <span className="text-zinc-500">Admin Console</span>

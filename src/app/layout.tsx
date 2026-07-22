@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   // Browser tab / bookmark icon. Mirrors the Vite <link rel="icon"> that pointed
   // at the logo in public/assets. Also used for the Apple touch icon.
   icons: {
-    icon: '/assets/logo.png',
-    shortcut: '/assets/logo.png',
-    apple: '/assets/logo.png',
+    icon: 'https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png',
+    shortcut: 'https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png',
+    apple: 'https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png',
   },
   openGraph: {
     type: 'website',

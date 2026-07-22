@@ -24,6 +24,7 @@ import {
 import type { ApiProject } from '@/api/public/projects';
 import { ApiError } from '@/api/api';
 import { cn } from '@/app/lib/cn';
+import { compressImage, compressImages } from '@/app/lib/imageCompress';
 import { TableShell } from '../components/crud';
 
 // Small transient toast — no dependency, matches the dark palette.
@@ -72,11 +73,20 @@ export default function ProjectsAdminPage() {
   const handleSubmit = async (input: ProjectInput, files: File[], coverFile: File | null) => {
     setBusy(true);
     try {
+      // Shrink/re-encode images in the browser BEFORE they hit the network.
+      // A multi-MB original is what makes an upload PUT/POST get reset on some
+      // paths (proxy body limits, antivirus HTTPS inspection, slow uplinks) and
+      // surface as a misleading "Failed to fetch" / CORS error. A few-hundred-KB
+      // payload sails through. compress* never throws — worst case, originals.
+      const [compressedCover, compressedFiles] = await Promise.all([
+        coverFile ? compressImage(coverFile) : Promise.resolve(null),
+        compressImages(files),
+      ]);
       if (editing) {
-        await updateProject(editing._id, input, files, coverFile);
+        await updateProject(editing._id, input, compressedFiles, compressedCover);
         pushToast('ok', 'Project updated');
       } else {
-        await createProject(input, files, coverFile);
+        await createProject(input, compressedFiles, compressedCover);
         pushToast('ok', 'Project created');
       }
       setModalOpen(false);

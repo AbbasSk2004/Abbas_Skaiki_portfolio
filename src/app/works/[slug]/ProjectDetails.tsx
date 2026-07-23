@@ -38,7 +38,7 @@ export function ProjectDetails({
               rel="noreferrer noopener"
               className="flex items-center gap-1.5 border-l border-white/10 px-6 py-5 font-mono text-xs uppercase tracking-widest text-zinc-300 transition-colors hover:bg-white/[0.03] hover:text-white md:px-8"
             >
-              LIVE DEMO
+              LIVE
               <ArrowUpRight size={14} />
             </a>
           )}

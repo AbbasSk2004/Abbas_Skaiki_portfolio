@@ -1,5 +1,5 @@
 import { getHero } from '@/api/public/hero';
-import { HeroContent } from './HeroContent';
+import { HeroContent } from '../client/HeroContent';
 
 // Server Component: fetches the hero document from the Express API (1-hour ISR
 // via getHero) and passes plain props to the client presentation, where the

@@ -1,5 +1,5 @@
 import { getAbout } from '@/api/public/about';
-import { AboutText } from './AboutText';
+import { AboutText } from '../client/AboutText';
 
 // Server Component: fetches the singleton About document from the Express API
 // (1-hour ISR via getAbout) and passes the bio + portrait to the client

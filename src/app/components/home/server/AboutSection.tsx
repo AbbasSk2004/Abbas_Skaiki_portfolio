@@ -1,5 +1,5 @@
 import { getTechStacks } from '@/api/public/techStack';
-import { ExpertiseMarquee, type ExpertiseCard } from './ExpertiseMarquee';
+import { ExpertiseMarquee, type ExpertiseCard } from '../client/ExpertiseMarquee';
 
 // Server Component: fetches the expertise/tech categories from the Express API
 // (1-hour ISR via getTechStacks) and hands plain, serializable cards to the

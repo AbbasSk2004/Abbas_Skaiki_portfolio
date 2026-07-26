@@ -284,8 +284,8 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
                 alt="skaiki.dev logo"
                 className="w-8 h-8 object-contain"
               />
-              <span className="font-['Space_Grotesk'] text-xl font-bold lowercase tracking-tight text-white">
-                skaiki.dev
+              <span className="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-white">
+                Skaiki.dev
               </span>
             </div>
             <p className="font-['Inter'] text-sm text-zinc-400 max-w-[220px]">

@@ -1,5 +1,5 @@
 import { getDrivenResults } from '@/api/public/drivenResults';
-import { DrivenResultsGrid, type Metric } from './DrivenResultsGrid';
+import { DrivenResultsGrid, type Metric } from '../client/DrivenResultsGrid';
 
 // The headline copy is presentation, not data — it never varied per record and
 // was never seeded, so it stays here in the component.

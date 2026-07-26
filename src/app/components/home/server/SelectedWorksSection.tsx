@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { getFeaturedProjects } from '@/api/public/projects';
-import { mapApiProject, sortByIndex } from '../works/projectLayout';
+import { mapApiProject, sortByIndex } from '../../../works/projectLayout';
 
 // The home page teaser shows only featured projects (up to three); the full set
 // lives on /works. Data comes from the Express API (1-hour ISR via

@@ -1,5 +1,5 @@
 import { getTestimonials, type ApiTestimonial } from '@/api/public/testimonials';
-import { TestimonialsCarousel, type TestimonialItem } from './TestimonialsCarousel';
+import { TestimonialsCarousel, type TestimonialItem } from '../client/TestimonialsCarousel';
 
 // Server Component: fetches testimonials from the Express API (1-hour ISR via
 // getTestimonials) and hands plain data to the client carousel, where the

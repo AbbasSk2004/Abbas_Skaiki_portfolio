@@ -30,6 +30,10 @@ export default function HeroAdminPage() {
     intro: '',
     badge: '',
     headerImage: '',
+    location: '',
+    field: '',
+    approach: '',
+    clients: '',
   });
 
   useEffect(() => {
@@ -44,6 +48,10 @@ export default function HeroAdminPage() {
             intro: doc.intro ?? '',
             badge: doc.badge ?? '',
             headerImage: doc.headerImage ?? '',
+            location: doc.location ?? '',
+            field: doc.field ?? '',
+            approach: doc.approach ?? '',
+            clients: doc.clients ?? '',
           });
         }
       })
@@ -75,6 +83,10 @@ export default function HeroAdminPage() {
         intro: updated.intro ?? '',
         badge: updated.badge ?? '',
         headerImage: updated.headerImage ?? '',
+        location: updated.location ?? '',
+        field: updated.field ?? '',
+        approach: updated.approach ?? '',
+        clients: updated.clients ?? '',
       });
       setFile(null);
       push('ok', 'Hero saved');
@@ -118,6 +130,21 @@ export default function HeroAdminPage() {
           <Field label="Intro paragraph">
             <Textarea value={form.intro ?? ''} onChange={(v) => set('intro', v)} rows={4} />
           </Field>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Location" hint="e.g. Tyre, Lebanon">
+              <Input value={form.location ?? ''} onChange={(v) => set('location', v)} />
+            </Field>
+            <Field label="Field" hint="e.g. Full-Stack Web Development">
+              <Input value={form.field ?? ''} onChange={(v) => set('field', v)} />
+            </Field>
+            <Field label="Approach" hint="e.g. Automating Business Workflows">
+              <Input value={form.approach ?? ''} onChange={(v) => set('approach', v)} />
+            </Field>
+            <Field label="Clients" hint="e.g. B2B & Marketing Teams">
+              <Input value={form.clients ?? ''} onChange={(v) => set('clients', v)} />
+            </Field>
+          </div>
 
           <ImagePicker
             label="Portrait"

@@ -8,6 +8,11 @@ export type ApiHero = {
   intro?: string;
   badge?: string;
   headerImage?: string;
+  // Four-cell facts row (InfoStrip). Optional until seeded/saved.
+  location?: string;
+  field?: string;
+  approach?: string;
+  clients?: string;
 };
 
 // GET /api/hero — single hero document (added in apiRoutes.js).

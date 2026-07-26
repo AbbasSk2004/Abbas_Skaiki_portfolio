@@ -13,6 +13,10 @@ export type HeroInput = {
   intro?: string;
   badge?: string;
   headerImage?: string;
+  location?: string;
+  field?: string;
+  approach?: string;
+  clients?: string;
 };
 
 function toFormData(input: HeroInput, file: File): FormData {

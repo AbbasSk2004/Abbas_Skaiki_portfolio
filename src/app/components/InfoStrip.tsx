@@ -1,12 +1,19 @@
-import React from 'react';
+import { getHero } from '@/api/public/hero';
 
-// Static four-cell info row. No interactivity → Server Component.
-export const InfoStrip: React.FC = () => {
+// Four-cell facts row under the hero. Server Component: hydrates from the same
+// Hero singleton the hero section uses, with the same ISR window + shared
+// cache tag — so an admin save still pings `revalidateTag('public-content')`
+// and this refreshes alongside every other section.
+export const InfoStrip: React.FC = async () => {
+  const hero = await getHero();
+  if (!hero) return null;
+
+  // Order matches the original static layout: LOCATION → FIELD → APPROACH → CLIENTS.
   const items = [
-    { label: "LOCATION", content: "TYRE, LEBANON" },
-    { label: "FIELD", content: "FULL-STACK WEB DEVELOPMENT" },
-    { label: "APPROACH", content: "AUTOMATING BUSINESS WORKFLOWS" },
-    { label: "CLIENTS", content: "B2B & MARKETING TEAMS" }
+    { label: 'LOCATION', content: hero.location ?? '' },
+    { label: 'FIELD', content: hero.field ?? '' },
+    { label: 'APPROACH', content: hero.approach ?? '' },
+    { label: 'CLIENTS', content: hero.clients ?? '' },
   ];
 
   return (

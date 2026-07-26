@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Mail, Phone } from 'lucide-react';
 import { API_BASE_URL } from '@/api/api';
 import type { ContactInfo, SocialLinkItem } from '@/app/works/types';
 
@@ -143,20 +144,26 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
 
           {/* Bottom contact details */}
           <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:gap-8 gap-2">
-            <a
-              href={`mailto:${email}`}
-              className="font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
-            >
-              {email}
-            </a>
-            <a
-              href={`https://wa.me/${phone.replace(/\D/g, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
-            >
-              {phone}
-            </a>
+            {email && (
+              <a
+                href={`mailto:${email}`}
+                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                {email}
+              </a>
+            )}
+            {phone && (
+              <a
+                href={`https://wa.me/${phone.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
+              >
+                <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                {phone}
+              </a>
+            )}
           </div>
         </div>
 

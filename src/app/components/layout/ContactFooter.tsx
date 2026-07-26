@@ -150,7 +150,9 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
               {email}
             </a>
             <a
-              href={`tel:${phone.replace(/[^+\d]/g, '')}`}
+              href={`https://wa.me/${phone.replace(/\D/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="font-mono text-xs uppercase tracking-widest text-zinc-300 hover:text-white transition-colors"
             >
               {phone}

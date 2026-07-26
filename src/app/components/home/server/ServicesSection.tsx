@@ -1,6 +1,5 @@
 import React from 'react';
 import Image from 'next/image';
-import { ArrowUpRight } from 'lucide-react';
 import { getServices } from '@/api/public/services';
 
 // Section-level hero image and the pull-quote are presentation, not per-record
@@ -106,9 +105,6 @@ export const ServicesSection: React.FC = async () => {
               <div className="col-span-1 md:col-span-3 flex md:justify-end items-center">
                 <div className="hidden md:flex w-32 h-20 border border-white/10 bg-zinc-900 rounded overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-x-4 group-hover:translate-x-0 relative">
                   <Image src={service.hoverImg} alt="Preview" fill sizes="128px" className="object-cover grayscale opacity-80" />
-                </div>
-                <div className="md:hidden flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-widest mt-4">
-                  Explore <ArrowUpRight size={14} />
                 </div>
               </div>
             </div>

@@ -85,6 +85,11 @@ export const Navbar: React.FC = () => {
   // (the current path) to flag the active route and rewrite hash targets.
   const pathname = usePathname();
   const isWorksPage = pathname === '/works';
+  // Section anchors (about/contact) only have targets on the home route. On any
+  // nested route (e.g. /works/destello) the plain hash would resolve to nothing,
+  // so we route home first. Contact happens to work everywhere today only
+  // because its footer is mounted globally — About's section lives on "/" only.
+  const isHome = pathname === '/';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Scramble driver for the CTA — triggered from the whole button area, not just the text.
@@ -92,10 +97,10 @@ export const Navbar: React.FC = () => {
 
   const closeMenu = () => setIsMenuOpen(false);
 
-  // Section anchors work in-page on the home route; from /works they need to
-  // route home first (`/#about`) so the hash has a target to scroll to.
-  const aboutHref = isWorksPage ? '/#about' : '#about';
-  const contactHref = isWorksPage ? '/#contact' : '#contact';
+  // Section anchors work in-page on the home route; from anywhere else they
+  // need to route home first (`/#about`) so the hash has a target to scroll to.
+  const aboutHref = isHome ? '#about' : '/#about';
+  const contactHref = isHome ? '#contact' : '/#contact';
 
   return (
     <>

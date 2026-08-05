@@ -41,8 +41,8 @@ export type Project = {
   image: string;
 
   // --- Listing macro-grid hints (md+) ---------------------------------------
-  /** Tailwind column placement on the md:grid-cols-4 macro layout. */
-  span: string;
+  // Column placement is NOT stored here: the listing derives it from the
+  // project's position (first = full-width banner, rest = 2-up). See WorksList.
   /** Aspect ratio of the card image cell — varied to break the uniform grid. */
   aspect: string;
   /** Title scale — the hero reads larger than the satellite blocks. */

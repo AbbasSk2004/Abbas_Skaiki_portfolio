@@ -26,7 +26,15 @@ const Crosshair: React.FC<{ className?: string }> = ({ className }) => (
 // participates in the scroll-reveal animation.
 const MotionLink = motion.create(Link);
 
-const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
+const ProjectBlock: React.FC<{
+  project: Project;
+  /** Extra image-cell classes from the macro layout, e.g. an md: aspect override. */
+  aspectOverride?: string;
+  /** Uniform title scale for the 2-up cards, since 7xl reads too large at half-width. */
+  titleSizeOverride?: string;
+  /** next/image `sizes` — the hero spans the full container, the rest are half. */
+  sizes: string;
+}> = ({ project, aspectOverride, titleSizeOverride, sizes }) => {
   return (
     <MotionLink
       href={`/works/${project.slug}`}
@@ -34,25 +42,31 @@ const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      // Intrinsic height only: `h-fit self-start` keeps the card at its natural
-      // image + text height so it never stretches to match a taller neighbour.
-      // Structural borders + crosshairs live on the parent cell, not here.
+      // THE FIX: The card now stretches to fill the grid cell (`h-full`), and
+      // the content box below gets `flex-1` so it expands to match its neighbour.
+      // Grid rows stretch to the tallest item, so when one card's content box is
+      // taller, `flex-1` on the others pushes their bottom borders down to align.
       //
-      // `flex flex-col` + `md:max-h-[80vh]` caps the card on desktop so tall
-      // portraits stay within one viewport. Only the image wrapper below shrinks
-      // to absorb the ceiling (grow-0/shrink-1/basis-auto + min-h-0); the text
-      // row is `shrink-0`, so the title and tags are never squeezed or clipped.
-      className="group relative flex h-fit w-full flex-col self-start overflow-hidden bg-[#050505] md:max-h-[80vh]"
+      // Image height: the desktop `aspectOverride` is now applied via an inline
+      // min-height calculation rather than an aspect-ratio class, so every 2-up
+      // card gets a uniform 320px image slot regardless of its authored mobile
+      // aspect. Mobile stays untouched (no md: prefix on the calculation).
+      //
+      // The 80vh cap is removed — it was designed for a staggered bento where
+      // tall portraits needed clipping; a balanced 2-up grid with uniform image
+      // heights never reaches 80vh naturally, so the cap is dead code.
+      className="group relative flex h-full w-full flex-col overflow-hidden bg-[#050505]"
     >
-      {/* The Image Cell — full-bleed within its own cell, hover reveals colour.
-          Keeps its aspect ratio as the natural (mobile / un-capped) height, but
-          `md:min-h-0` lets it crop instead of squish when the 80vh cap bites. */}
-      <div className={`relative w-full overflow-hidden border-b border-white/10 bg-zinc-900 md:min-h-0 ${project.aspect}`}>
+      {/* The Image Cell — `shrink-0` pins it to its aspect ratio so the card's
+          stretch (h-full) is absorbed entirely by the content box below, never
+          by distorting the image. The md: aspect override gives every card in a
+          row the same image height; the authored mobile aspect is untouched. */}
+      <div className={`relative w-full shrink-0 overflow-hidden border-b border-white/10 bg-zinc-900 ${project.aspect} ${aspectOverride ?? ''}`}>
         <Image
           src={project.image}
           alt={project.title}
           fill
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes={sizes}
           className="object-cover object-center opacity-80 grayscale transition-all duration-700 ease-out group-hover:scale-[1.04] group-hover:opacity-100 group-hover:grayscale-0"
         />
         <div className="absolute inset-0 bg-black/20 transition-colors duration-700 group-hover:bg-transparent" />
@@ -63,22 +77,35 @@ const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
       </div>
 
       {/* The Metadata Row — title left, tags right, split by a vertical border.
-          `shrink-0` keeps it at its natural height so the 80vh cap only ever
-          eats into the image above, never the labels.
+          Equal heights: `flex-1` makes this box absorb all the card's leftover
+          height. Since the grid stretches every card in a row to the tallest one,
+          and the image above is `shrink-0`, this box is the only thing that
+          grows — so the bottom borders line up across the row.
+
+          Split ratio: 3fr/2fr (60/40), NOT 50/50. Titles are long uppercase
+          words ("ARCHITECTURE") while tags are short mono labels, so an even
+          split starves the side that needs the room. This pushes the divider
+          right, giving the title enough width to fit without breaking mid-word.
+
           Mobile-first: stacks into a single full-width column (`flex-col`, no
-          divider) so the large title can't overflow into the tags; the original
-          two-column grid + `border-l` separator is restored at `md:`. */}
-      <div className="flex shrink-0 flex-col transition-colors group-hover:bg-white/[0.02] md:grid md:grid-cols-2">
-        {/* Left cell: massive uppercase title */}
-        <div className="flex items-center p-6 pb-2 md:p-8">
-          <h3 className={`font-['Space_Grotesk'] font-bold uppercase leading-none tracking-tight text-zinc-100 ${project.titleSize}`}>
+          divider); the two-column split + `border-l` separator start at `md:`. */}
+      <div className="flex flex-1 flex-col transition-colors group-hover:bg-white/[0.02] md:grid md:grid-cols-[3fr_2fr] md:items-stretch">
+        {/* Left cell: massive uppercase title.
+            `min-w-0` is mandatory — without it a grid child's min-width defaults
+            to `auto` (its intrinsic content width), so a long word expands the
+            column and bursts through the padding into the divider. `md:pr-8`
+            holds a hard gutter, and `break-words` is the last-resort safety net
+            for a word longer than the column can ever fit. */}
+        <div className="flex min-w-0 items-center p-6 pb-2 md:p-8 md:pr-8">
+          <h3 className={`font-['Space_Grotesk'] break-words font-bold uppercase leading-[0.95] tracking-tight text-zinc-100 ${titleSizeOverride ?? project.titleSize}`}>
             {project.title}
           </h3>
         </div>
         {/* Right cell: stacked monospace tags — left-aligned when stacked on
             mobile, right-aligned in the two-column layout at `md:`; the vertical
-            separator only appears at `md:`. */}
-        <div className="flex flex-col items-start justify-center gap-1 border-white/10 p-6 pt-2 text-left md:items-end md:border-l md:p-8 md:pt-8 md:text-right">
+            separator only appears at `md:`. `min-w-0` here too so a long tag
+            ("NODE.JS/EXPRESS") can't push back against the title's column. */}
+        <div className="flex min-w-0 flex-col items-start justify-center gap-1 border-white/10 p-6 pt-2 text-left md:items-end md:border-l md:p-8 md:pt-8 md:text-right">
           {project.tags.map((tag) => (
             <span
               key={tag}
@@ -95,12 +122,12 @@ const ProjectBlock: React.FC<{ project: Project }> = ({ project }) => {
 
 // A structural grid cell. This — NOT the card — is the direct grid item, so it
 // carries the span, the architectural border walls, and the blueprint
-// crosshairs. Because grid items stretch by default, a half-filled cell keeps
-// its full-height borders even when the card inside only takes its natural
-// height. `content-start` pins the card to the top so the empty space sits
-// below it, framed by the cell walls.
+// crosshairs. Grid items stretch to the row height by default, and the card
+// inside is `h-full`, so it fills the cell completely — that's what makes the
+// bottom borders align across a row. (Previously `content-start` pinned the card
+// to the top of the cell, which is what left the ragged bottom edges.)
 const GridCell: React.FC<{ span: string; children: React.ReactNode }> = ({ span, children }) => (
-  <div className={`relative col-span-1 grid content-start border border-white/10 ${span}`}>
+  <div className={`relative col-span-1 grid border border-white/10 ${span}`}>
     {/* Blueprint crosshairs at every corner of the cell */}
     <Crosshair className="left-0 top-0" />
     <Crosshair className="right-0 top-0" />
@@ -140,20 +167,43 @@ export function WorksList({ projects }: { projects: Project[] }) {
         </motion.p>
       </div>
 
-      {/* The Asymmetrical Staggered Grid — collapses to a single column on
-          mobile. Grid lines live on the GridCell wrappers (which stretch to the
-          row height) so a short card never inherits dead space; the card inside
-          each cell keeps its intrinsic height. */}
-      <div className="grid grid-cols-1 items-start gap-x-6 gap-y-16 md:grid-cols-4 md:gap-y-24">
+      {/* Macro grid: full-width hero row, then a balanced 2-up run beneath it.
+          `grid-cols-1` keeps mobile a single stacked column — the md: spans only
+          engage at the breakpoint. Grid lines live on the GridCell wrappers
+          (which stretch to the row height) so a short card never inherits dead
+          space; the card inside each cell keeps its intrinsic height. */}
+      <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-16 md:grid-cols-4 md:gap-y-24">
         {projects.map((project, index) => {
-          // Prefer the designed per-slug span; otherwise fall back to an
-          // index-based wide/narrow alternation so hint-less (DB-added)
-          // projects still read as an editorial bento rather than a uniform run.
-          const span =
-            project.span || (index % 2 === 0 ? 'md:col-span-3' : 'md:col-span-1');
+          // Positional layout: the first project is the full-width banner, every
+          // subsequent one takes half the 4-column macro grid, giving a balanced
+          // 2-up run beneath it. Derived from `index` rather than the per-slug
+          // `span` hint so the pattern holds for any project count — including
+          // rows added later via the admin panel, which carry no hint.
+          const span = index === 0 ? 'md:col-span-4' : 'md:col-span-2';
+          // The hero is a wide banner; the 2-up rows below are near-square cells.
+          // Applied as an md:-only override so every mobile aspect stays exactly
+          // as authored in LAYOUT_HINTS.
+          const aspectOverride =
+            index === 0 ? 'md:aspect-[21/9]' : 'md:aspect-[4/3]';
+          const sizes =
+            index === 0
+              ? '(max-width: 768px) 100vw, 1280px'
+              : '(max-width: 768px) 100vw, 50vw';
+          // The per-slug titleSize was authored for the old staggered widths
+          // (7xl for a 4-col hero, 3xl for a 1-col card). At a uniform half-width
+          // those clash — 7xl overflows, 3xl looks undersized. The hero keeps its
+          // authored scale; the 2-up cards share one sized to the 3fr title
+          // column: at text-4xl the longest real title ("ARCHITECTURE", ~264px)
+          // clears the ~298px of usable width, so it never breaks mid-word.
+          const titleSizeOverride = index === 0 ? undefined : 'text-2xl md:text-4xl';
           return (
             <GridCell key={project.slug} span={span}>
-              <ProjectBlock project={project} />
+              <ProjectBlock
+                project={project}
+                aspectOverride={aspectOverride}
+                titleSizeOverride={titleSizeOverride}
+                sizes={sizes}
+              />
             </GridCell>
           );
         })}

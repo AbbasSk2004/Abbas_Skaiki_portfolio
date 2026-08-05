@@ -2,10 +2,6 @@ import React from 'react';
 import Image from 'next/image';
 import { getApproach } from '@/api/public/approach';
 
-// Fallback used when the Approach singleton has no section image set yet. The
-// image itself is now data (data.approachImage), so this is only a safety net.
-const FALLBACK_IMAGE = '/assets/approach.png';
-
 // Four-dot progress indicator: `active` dots highlighted, the rest muted.
 const ProgressDots: React.FC<{ active: number }> = ({ active }) => (
   <div className="flex flex-row items-center gap-1.5">
@@ -35,8 +31,8 @@ const GridPlus: React.FC<{ className?: string }> = ({ className = '' }) => (
 export const ApproachSection: React.FC = async () => {
   const data = await getApproach();
 
-  // The section image is now data; fall back to the bundled asset if unset.
-  const sectionImage = data?.approachImage || FALLBACK_IMAGE;
+  // The section image is data; the column keeps its size when it isn't set.
+  const sectionImage = data?.approachImage;
 
   // Sort steps by stepNumber and map onto the box shape. The editorial index
   // ("01/") and the progress-dot count both derive from stepNumber (presentation).
@@ -68,9 +64,9 @@ export const ApproachSection: React.FC = async () => {
           {/* Right Side */}
           <div className="md:col-span-4 px-8 py-16 flex items-end border-t md:border-t-0 md:border-l border-white/10">
             <p className="font-mono text-xs text-zinc-400 uppercase tracking-wider leading-relaxed">
-              "EVERY PROJECT IS DIFFERENT, BUT THE PATH TO GREAT WORK STAYS THE
+              &ldquo;EVERY PROJECT IS DIFFERENT, BUT THE PATH TO GREAT WORK STAYS THE
               SAME – A BALANCE OF RESEARCH, CLARITY, CREATIVITY, AND
-              REFINEMENT."
+              REFINEMENT.&rdquo;
             </p>
           </div>
         </div>
@@ -79,13 +75,15 @@ export const ApproachSection: React.FC = async () => {
         <div className="grid grid-cols-1 md:grid-cols-12">
           {/* Left Column: Image */}
           <div className="md:col-span-6 border-b md:border-b-0 md:border-r border-white/10 relative min-h-[300px] md:min-h-full md:h-auto">
-            <Image
-              src={sectionImage}
-              alt="Creative approach visual"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-            />
+            {sectionImage && (
+              <Image
+                src={sectionImage}
+                alt="Creative approach visual"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            )}
           </div>
 
           {/* Right Column: 2x2 Phase Grid. Border pattern reproduces the original

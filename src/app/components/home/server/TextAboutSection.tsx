@@ -11,7 +11,7 @@ export const TextAboutSection: React.FC = async () => {
   return (
     <AboutText
       bio={about.bio}
-      portrait={about.aboutImage ?? '/assets/abbas.png'}
+      portrait={about.aboutImage}
     />
   );
 };

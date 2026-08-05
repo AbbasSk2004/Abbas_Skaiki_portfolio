@@ -19,7 +19,7 @@ export const HeroSection: React.FC = async () => {
       roleLabel={hero.roleLabel ?? ''}
       intro={hero.intro ?? ''}
       badge={hero.badge ?? ''}
-      headerImage={hero.headerImage ?? '/assets/abbas.png'}
+      headerImage={hero.headerImage}
     />
   );
 };

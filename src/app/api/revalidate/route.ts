@@ -41,11 +41,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Accept the secret from a header (preferred) or a ?secret= query fallback.
-  const provided =
-    req.headers.get('x-revalidate-secret') ??
-    req.nextUrl.searchParams.get('secret') ??
-    '';
+  // Header only — a ?secret= query fallback would leak the secret into access
+  // logs, proxies, and browser history.
+  const provided = req.headers.get('x-revalidate-secret') ?? '';
 
   if (!safeEqual(provided, expected)) {
     return NextResponse.json(

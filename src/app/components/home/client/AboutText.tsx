@@ -28,7 +28,7 @@ const Word: React.FC<{ children: string; progress: MotionValue<number>; range: [
   );
 };
 
-export const AboutText: React.FC<{ bio: string; portrait: string }> = ({ bio, portrait }) => {
+export const AboutText: React.FC<{ bio: string; portrait?: string }> = ({ bio, portrait }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -81,13 +81,15 @@ export const AboutText: React.FC<{ bio: string; portrait: string }> = ({ bio, po
           transition={{ duration: 1 }}
           className="relative w-full aspect-[2/3] md:aspect-auto md:h-full md:min-h-[400px]"
         >
-          <Image
-            src={portrait}
-            alt="Abbas Skaiki Portrait"
-            fill
-            sizes="(max-width: 768px) 100vw, 30vw"
-            className="object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-700"
-          />
+          {portrait && (
+            <Image
+              src={portrait}
+              alt="Abbas Skaiki Portrait"
+              fill
+              sizes="(max-width: 768px) 100vw, 30vw"
+              className="object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-700"
+            />
+          )}
           <div className="absolute inset-0 border-[16px] border-[#050505] pointer-events-none mix-blend-overlay"></div>
         </motion.div>
       </div>

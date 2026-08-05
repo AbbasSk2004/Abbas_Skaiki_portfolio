@@ -13,7 +13,7 @@ export type HeroContentProps = {
   roleLabel: string;
   intro: string;
   badge: string;
-  headerImage: string;
+  headerImage?: string;
 };
 
 export const HeroContent: React.FC<HeroContentProps> = ({
@@ -50,14 +50,16 @@ export const HeroContent: React.FC<HeroContentProps> = ({
               {/* Inner relative wrapper so next/image `fill` covers the content
                   box (inside the p-2 frame), preserving the original inset look. */}
               <div className="relative w-full h-full">
-                <Image
-                  src={headerImage}
-                  alt={`Portrait of ${firstName} ${lastName}`}
-                  fill
-                  sizes="(max-width: 768px) 75vw, 320px"
-                  className="object-cover"
-                  priority
-                />
+                {headerImage && (
+                  <Image
+                    src={headerImage}
+                    alt={`Portrait of ${firstName} ${lastName}`}
+                    fill
+                    sizes="(max-width: 768px) 75vw, 320px"
+                    className="object-cover"
+                    priority
+                  />
+                )}
               </div>
             </div>
 

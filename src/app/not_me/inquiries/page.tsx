@@ -25,6 +25,9 @@ import {
   TableShell,
   ToastStack,
   AdminPageHeader,
+  DetailModal,
+  DetailRow,
+  formatDate,
 } from '../components/crud';
 
 const STATUSES: InquiryStatus[] = ['new', 'read', 'replied'];
@@ -36,6 +39,19 @@ const STATUS_STYLE: Record<InquiryStatus, string> = {
   replied: 'border-[var(--chart-2)]/40 text-[var(--chart-2)]',
 };
 
+// Historical fallback: before `phone` existed on the Inquiry model, ContactFooter
+// appended the number to the message body as "\n\nPhone: <number>". New records
+// carry a real `phone` field, so this only rescues rows written before that
+// change — delete it once those have aged out.
+const LEGACY_PHONE_SUFFIX = /\n\nPhone:\s*(.+)\s*$/;
+
+const getPhone = (item: ApiInquiry) =>
+  item.phone?.trim() || LEGACY_PHONE_SUFFIX.exec(item.message)?.[1]?.trim() || null;
+
+// Strips the legacy appended line so the details modal doesn't repeat the phone
+// number that already has its own row. A no-op for new records.
+const getMessage = (item: ApiInquiry) => item.message.replace(LEGACY_PHONE_SUFFIX, '').trim();
+
 export default function InquiriesAdminPage() {
   const crud = useCrud<ApiInquiry>({
     list: listInquiries,
@@ -45,12 +61,19 @@ export default function InquiriesAdminPage() {
 
   // Local status mutation — optimistic refresh via the shared kit.
   const [savingId, setSavingId] = useState<string | null>(null);
+  // The inquiry currently open in the read-only details modal.
+  const [viewing, setViewing] = useState<ApiInquiry | null>(null);
+
   const changeStatus = async (item: ApiInquiry, status: InquiryStatus) => {
     if (status === item.status) return;
     setSavingId(item._id);
     try {
       await updateInquiryStatus(item._id, status);
       crud.push('ok', `Marked ${status}`);
+      // Keep the open modal in sync with what was just saved.
+      setViewing((current) =>
+        current && current._id === item._id ? { ...current, status } : current
+      );
       await crud.refresh();
     } catch (err) {
       crud.push('err', err instanceof ApiError ? err.message : 'Update failed');
@@ -72,7 +95,7 @@ export default function InquiriesAdminPage() {
           <thead>
             <tr className="border-b border-white/10 bg-white/[0.02] font-mono text-[10px] uppercase tracking-widest text-zinc-500">
               <th className="px-4 py-3 font-medium">From</th>
-              <th className="hidden px-4 py-3 font-medium md:table-cell">Message</th>
+              <th className="hidden px-4 py-3 font-medium md:table-cell">Phone</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="hidden px-4 py-3 font-medium sm:table-cell">Received</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -97,7 +120,9 @@ export default function InquiriesAdminPage() {
             )}
 
             {!crud.loading &&
-              crud.items.map((item) => (
+              crud.items.map((item) => {
+                const phone = getPhone(item);
+                return (
                 <tr key={item._id} className="group align-top transition-colors hover:bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <p className="text-sm text-white">{item.name}</p>
@@ -108,8 +133,19 @@ export default function InquiriesAdminPage() {
                       </p>
                     )}
                   </td>
-                  <td className="hidden max-w-md whitespace-normal px-4 py-3 md:table-cell">
-                    <p className="line-clamp-3 text-xs text-zinc-400">{item.message}</p>
+                  <td className="hidden px-4 py-3 md:table-cell">
+                    {/* Parsed out of the message body — see extractPhone. Linked
+                        as tel: so it's callable straight from the inbox. */}
+                    {phone ? (
+                      <a
+                        href={`tel:${phone.replace(/[^\d+]/g, '')}`}
+                        className="font-mono text-xs text-zinc-300 tabular-nums hover:text-white"
+                      >
+                        {phone}
+                      </a>
+                    ) : (
+                      <span className="font-mono text-xs text-zinc-600">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <select
@@ -129,10 +165,17 @@ export default function InquiriesAdminPage() {
                     </select>
                   </td>
                   <td className="hidden px-4 py-3 font-mono text-[11px] text-zinc-500 sm:table-cell">
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—'}
+                    {formatDate(item.createdAt)}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                      <button
+                        type="button"
+                        onClick={() => setViewing(item)}
+                        className="rounded-[var(--radius-sm)] border border-white/10 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-zinc-300 hover:border-white/30 hover:text-white"
+                      >
+                        View
+                      </button>
                       <button
                         type="button"
                         onClick={() => crud.setConfirming(item)}
@@ -143,9 +186,68 @@ export default function InquiriesAdminPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
           </tbody>
       </TableShell>
+
+      <AnimatePresence>
+        {viewing && (
+          <DetailModal
+            key="detail"
+            title={viewing.name}
+            subtitle={viewing.email}
+            onClose={() => setViewing(null)}
+            footer={
+              <div className="flex flex-wrap gap-2">
+                {STATUSES.map((status) => {
+                  const isCurrent = viewing.status === status;
+                  return (
+                    <button
+                      key={status}
+                      type="button"
+                      disabled={isCurrent || savingId === viewing._id}
+                      onClick={() => changeStatus(viewing, status)}
+                      className="rounded-[var(--radius-sm)] border border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-300 transition-colors hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/10 disabled:hover:text-zinc-300"
+                    >
+                      {isCurrent ? `✓ ${status}` : `Mark ${status}`}
+                    </button>
+                  );
+                })}
+              </div>
+            }
+          >
+            {viewing.subject && <DetailRow label="Subject">{viewing.subject}</DetailRow>}
+            <DetailRow label="Email">
+              <a href={`mailto:${viewing.email}`} className="font-mono text-xs hover:text-white">
+                {viewing.email}
+              </a>
+            </DetailRow>
+            <DetailRow label="Phone">
+              {getPhone(viewing) ? (
+                <a
+                  href={`tel:${getPhone(viewing)!.replace(/[^\d+]/g, '')}`}
+                  className="font-mono text-xs tabular-nums hover:text-white"
+                >
+                  {getPhone(viewing)}
+                </a>
+              ) : (
+                '—'
+              )}
+            </DetailRow>
+            <DetailRow label="Status">
+              <span className="font-mono uppercase">{viewing.status}</span>
+            </DetailRow>
+            <DetailRow label="Message">
+              {/* Legacy "Phone:" suffix stripped — it has its own row above. */}
+              <p className="whitespace-pre-wrap break-words leading-relaxed">
+                {getMessage(viewing) || '—'}
+              </p>
+            </DetailRow>
+            <DetailRow label="Received">{formatDate(viewing.createdAt)}</DetailRow>
+          </DetailModal>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {crud.confirming && (

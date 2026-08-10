@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Mail, Phone } from 'lucide-react';
 import { API_BASE_URL } from '@/api/api';
 import type { ContactInfo, SocialLinkItem } from '@/app/works/types';
+import { BookCallModal } from './BookCallModal';
 
 // Static nav links — these are route anchors, not CMS data.
 const NAV_LINKS = [
@@ -59,6 +60,7 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
 
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [feedback, setFeedback] = useState('');
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -82,16 +84,17 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
     setSubmitState('submitting');
     setFeedback('');
 
-    // Map the form onto the Inquiry model's shape. The model has no `phone`
-    // field, so the phone number is folded into the message body rather than
-    // dropped — see note in the PR: consider adding `phone` to the Inquiry model.
-    const message = senderPhone ? `${details}\n\nPhone: ${senderPhone}` : details;
-
     try {
       const res = await fetch(`${API_BASE_URL}/api/inquiries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ name, email: senderEmail, subject: 'Website inquiry', message }),
+        body: JSON.stringify({
+          name,
+          email: senderEmail,
+          phone: senderPhone,
+          subject: 'Website inquiry',
+          message: details,
+        }),
       });
       const body = await res.json().catch(() => null);
 
@@ -301,15 +304,18 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
               Crafting premium digital experiences through minimal, grid-based architectures.
             </p>
           </div>
-          <a
-            href="#contact"
-            className="p-8 border-t border-white/10 flex justify-between items-center group hover:bg-white/[0.02] transition-colors"
+          {/* Opens the booking dialog rather than jumping to the inquiry form —
+              a button, but styled identically to the footer's link rows. */}
+          <button
+            type="button"
+            onClick={() => setIsBookingOpen(true)}
+            className="w-full p-8 border-t border-white/10 flex justify-between items-center group hover:bg-white/[0.02] transition-colors"
           >
             <span className="font-mono text-xs uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors">
               Book a Call
             </span>
             <Arrow className="text-zinc-500 group-hover:text-white transform group-hover:translate-x-1 transition-transform" />
-          </a>
+          </button>
         </div>
 
         {/* Col 2 & 3 — wrapped in grid-cols-2 (mobile trick) so they sit side by side.
@@ -361,16 +367,15 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
               they look.
             </p>
           </div>
-          <div className="p-8 border-t border-white/10 flex flex-col gap-1 items-start text-left">
+          <div className="p-8 border-t border-white/10 flex items-start text-left">
             <span className="uppercase font-mono text-[10px] sm:text-xs text-zinc-500 tracking-wider">
               © 2026 All Rights Reserved
-            </span>
-            <span className="uppercase font-mono text-[10px] sm:text-xs text-white tracking-wider">
-              Powered by Skaiki.dev
             </span>
           </div>
         </div>
       </footer>
+
+      <BookCallModal open={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
     </div>
   );
 };

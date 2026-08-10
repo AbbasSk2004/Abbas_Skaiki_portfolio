@@ -14,6 +14,9 @@ export type ApiInquiry = {
   name: string;
   email: string;
   subject?: string;
+  // Optional: not collected before the field was added, and the form doesn't
+  // require it.
+  phone?: string;
   message: string;
   status: InquiryStatus;
   createdAt?: string;

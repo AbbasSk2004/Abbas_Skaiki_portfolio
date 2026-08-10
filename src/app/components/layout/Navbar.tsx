@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { BookCallModal } from './BookCallModal';
 
 // Glyphs cycled through while a character is "decoding". Uppercase letters keep
 // the shuffle reading as letters (the copy is uppercase), with a few symbols for texture.
@@ -91,6 +92,7 @@ export const Navbar: React.FC = () => {
   // because its footer is mounted globally — About's section lives on "/" only.
   const isHome = pathname === '/';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   // Scramble driver for the CTA — triggered from the whole button area, not just the text.
   const cta = useScrambleText('BOOK A CALL');
@@ -175,9 +177,12 @@ export const Navbar: React.FC = () => {
             </a>
           </div>
 
-          {/* Right Column — CTA */}
-          <a
-            href={contactHref}
+          {/* Right Column — CTA. A button (not an anchor) because it opens the
+              booking dialog rather than navigating; the grid classes are
+              unchanged so the asymmetric 3/6/3 layout is unaffected. */}
+          <button
+            type="button"
+            onClick={() => setIsBookingOpen(true)}
             onMouseEnter={cta.scramble}
             onMouseLeave={cta.scramble}
             className="hidden md:col-span-3 md:flex items-center justify-between px-6 md:px-8 group cursor-pointer"
@@ -186,7 +191,7 @@ export const Navbar: React.FC = () => {
               {cta.display}
             </span>
             <span className="text-white group-hover:text-red-500 group-hover:translate-x-1 transition-all duration-300">&rarr;</span>
-          </a>
+          </button>
         </div>
       </motion.nav>
 
@@ -206,7 +211,6 @@ export const Navbar: React.FC = () => {
                 { label: 'About', to: aboutHref, kind: 'hash' as const },
                 { label: 'Works', to: '/works', kind: 'route' as const },
                 { label: 'Contact', to: contactHref, kind: 'hash' as const },
-                { label: 'Book a Call', to: contactHref, kind: 'hash' as const },
               ].map((item) =>
                 item.kind === 'route' ? (
                   <Link
@@ -228,10 +232,26 @@ export const Navbar: React.FC = () => {
                   </a>
                 )
               )}
+
+              {/* Book a Call sits outside the map: it opens the dialog instead
+                  of navigating, so it renders as a button with the same row
+                  styling as the links above it. */}
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  setIsBookingOpen(true);
+                }}
+                className="w-full text-left px-6 py-6 border-b border-white/10 font-['Space_Grotesk'] text-3xl font-bold uppercase tracking-tight text-zinc-100 hover:bg-white/[0.02] transition-colors"
+              >
+                Book a Call
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BookCallModal open={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
     </>
   );
 };

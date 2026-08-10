@@ -83,6 +83,10 @@ export function Backdrop({
 
 // A card that stops backdrop click-through — used by both the form and the
 // delete confirmation. Callers supply their own <form>/content inside.
+//
+// dvh (not vh) so the height cap tracks the mobile browser's dynamic viewport:
+// with plain vh the card is measured against the LARGEST viewport, so its
+// bottom sits under the address bar / virtual keyboard.
 export function ModalCard({
   children,
   className,
@@ -98,12 +102,77 @@ export function ModalCard({
       transition={{ duration: 0.22, ease: 'easeOut' }}
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        'max-h-[90vh] w-full overflow-y-auto rounded-[var(--radius)] border border-white/10 bg-[#0a0a0a] p-6',
+        'max-h-[85dvh] w-full overflow-y-auto overscroll-contain rounded-[var(--radius)] border border-white/10 bg-[#0a0a0a] p-6',
         className
       )}
     >
       {children}
     </motion.div>
+  );
+}
+
+// --- Detail (read-only) modal -------------------------------------------------
+
+// Shared read-only viewer for the two inbox screens (Bookings / Inquiries).
+// Header and footer are pinned; only the body scrolls, so a long message can't
+// push the action buttons off-screen. `footer` is where callers put status
+// mutations — it's omitted entirely when not supplied.
+export function DetailModal({
+  title,
+  subtitle,
+  onClose,
+  children,
+  footer,
+}: {
+  title: string;
+  subtitle?: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
+  return (
+    <Backdrop onClose={onClose}>
+      <ModalCard className="flex max-w-lg flex-col p-0">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 p-6">
+          <div className="min-w-0">
+            <h3 className="font-['Space_Grotesk'] text-lg font-bold text-white">{title}</h3>
+            {subtitle && (
+              <p className="mt-1 truncate font-mono text-[11px] text-zinc-500">{subtitle}</p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close details"
+            className="shrink-0 text-zinc-500 transition-colors hover:text-white"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto overscroll-contain p-6">{children}</div>
+
+        {footer && <div className="shrink-0 border-t border-white/10 p-6">{footer}</div>}
+      </ModalCard>
+    </Backdrop>
+  );
+}
+
+// A labelled read-only row for DetailModal bodies.
+export function DetailRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border-b border-white/5 py-3 first:pt-0 last:border-b-0 last:pb-0">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">{label}</p>
+      <div className="mt-1.5 text-sm text-zinc-200">{children}</div>
+    </div>
   );
 }
 
@@ -468,3 +537,33 @@ export const toList = (s: string) =>
     .split(',')
     .map((x) => x.trim())
     .filter(Boolean);
+
+// --- Formatting ---------------------------------------------------------------
+
+// "14:30" → "2:30 PM". CallBooking.time is stored as a raw 24-hour string, which
+// reads ambiguously in the inbox ("01:22" — 1am or 1pm?). Parsed manually rather
+// than via `new Date("14:30")`, which is not a valid date string and yields
+// Invalid Date. Anything unparseable falls through unchanged rather than
+// rendering "Invalid Date".
+export function formatTime12h(time?: string) {
+  if (!time) return '—';
+  const match = /^(\d{1,2}):(\d{2})/.exec(time.trim());
+  if (!match) return time;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isFinite(hours) || hours > 23 || minutes > 59) return time;
+
+  const period = hours >= 12 ? 'PM' : 'AM';
+  // 0 → 12am, 13 → 1pm.
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour12}:${`${minutes}`.padStart(2, '0')} ${period}`;
+}
+
+// Locale date for the inbox tables. Bare `new Date(undefined)` is Invalid Date,
+// so the empty case is handled explicitly.
+export function formatDate(value?: string) {
+  if (!value) return '—';
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? '—' : parsed.toLocaleDateString();
+}

@@ -8,14 +8,22 @@ import { adminFetch } from './client';
 
 export type BookingStatus = 'pending' | 'confirmed' | 'completed';
 
+// How the requester wants to take the call (CallBooking.platform enum).
+export type BookingPlatform = 'zoom' | 'google-meet' | 'whatsapp';
+
 // Mirrors the CallBooking documents served by the admin backend.
 export type ApiBooking = {
   _id: string;
   name: string;
   email: string;
+  // Optional: not collected before the field was added, and the form doesn't
+  // require it.
+  phone?: string;
   date: string;
   time: string;
   topic?: string;
+  // Optional: bookings created before this field existed won't carry it.
+  platform?: BookingPlatform;
   status: BookingStatus;
   createdAt?: string;
 };

@@ -5,6 +5,9 @@ import { ApiError } from '@/api/api';
 import { mapApiProject, sortByIndex } from '../projectLayout';
 import { ProjectDetails } from './ProjectDetails';
 
+const fallbackSocialImage =
+  'https://res.cloudinary.com/duacqzjyv/image/upload/c_pad,b_rgb:050505,h_630,w_1200/q_auto/v1784727313/logo_ueoy5u.png';
+
 // Pre-render every project page at build time from the API's slug list.
 // (ISR still refreshes the data every hour via the per-request revalidate.)
 export async function generateStaticParams() {
@@ -22,13 +25,28 @@ export async function generateMetadata({
   try {
     const api = await getProjectBySlug(params.slug);
     const project = mapApiProject(api);
+    const canonicalPath = `/works/${params.slug}`;
+    const socialImage = project.image || fallbackSocialImage;
     return {
       title: project.title,
       description: project.challenge,
+      alternates: {
+        canonical: canonicalPath,
+      },
       openGraph: {
-        title: project.title,
+        type: 'article',
+        locale: 'en_US',
+        url: canonicalPath,
+        title: `${project.title} | Abbas Skaiki`,
         description: project.challenge,
-        images: project.image ? [{ url: project.image }] : [],
+        siteName: 'Abbas Skaiki',
+        images: [{ url: socialImage, alt: project.title }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${project.title} | Abbas Skaiki`,
+        description: project.challenge,
+        images: [socialImage],
       },
     };
   } catch {

@@ -3,7 +3,7 @@ import './globals.css';
 import { SiteChrome } from './components/layout/SiteChrome';
 import { ContactFooterSection } from './components/layout/ContactFooterSection';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
 const logoUrl =
   'https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png';
 const socialImageUrl =

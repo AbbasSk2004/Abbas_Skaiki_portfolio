@@ -12,20 +12,25 @@
 // white/10 borders, Space Grotesk / mono type — so the dashboard reads as the
 // same product as the public portfolio.
 //
-// RESPONSIVE NAV:
-//   - md+ : fixed vertical sidebar (unchanged).
-//   - <md : a sticky top header with a Menu/X toggle opens a fade-in overlay +
-//           slide-out drawer carrying the SAME grouped nav. One <NavLinks/>
-//           renders in both places, so the two never drift apart.
+// RESPONSIVE NAV / SCROLL MODEL:
+//   - md+ : split-pane shell — the wrapper locks to the viewport (h-screen +
+//           overflow-hidden), the sidebar stays stationary with its own
+//           internal scroll, and the main column owns the page scroll.
+//   - <md : body scrolls naturally under a sticky top header; a Menu/X toggle
+//           opens a fade-in overlay + slide-out drawer carrying the SAME
+//           grouped nav. One <NavLinks/> renders in both places, so the two
+//           never drift apart.
 // -----------------------------------------------------------------------------
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X } from 'lucide-react';
+import { Menu, Settings, X } from 'lucide-react';
 import { getMe, logout, type AdminUser } from '@/api/admin/auth';
 import { cn } from '@/app/lib/cn';
+import { AdminSettingsModal } from './AdminSettingsModal';
 
 // Grouped nav. Each section maps 1:1 to an admin router under back/routes/admin/.
 const NAV: Array<{ group: string; items: Array<{ href: string; label: string }> }> = [
@@ -115,6 +120,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true);
   // Mobile drawer open/closed. Desktop ignores this entirely (sidebar is static).
   const [isOpen, setIsOpen] = useState(false);
+  // Account settings modal — opened by the gear beside the "Admin" brand in
+  // both the desktop sidebar and the mobile drawer header.
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     // The login page renders without a guard.
@@ -175,14 +183,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#050505] text-white">
-      {/* Desktop sidebar — md+ only, unchanged. */}
+    <div className="flex min-h-screen bg-[#050505] text-white md:h-screen md:overflow-hidden">
+      {/* Desktop sidebar — md+ only, pinned by the locked wrapper. */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-white/10 md:flex">
         <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
-          <img src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" className="h-8 w-8 object-contain" />
+          <Image src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" width={32} height={32} quality={100} priority className="h-8 w-8 object-contain" />
           <span className="font-['Space_Grotesk'] text-sm font-bold uppercase tracking-widest">
             Admin
           </span>
+          <button
+            type="button"
+            aria-label="Account settings"
+            title="Account settings"
+            onClick={() => setSettingsOpen(true)}
+            className="ml-auto text-zinc-500 transition-colors hover:text-white"
+          >
+            <Settings size={16} strokeWidth={1.5} />
+          </button>
         </div>
         <nav className="flex-1 space-y-5 overflow-y-auto p-4">
           <NavLinks pathname={pathname} />
@@ -212,10 +229,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
                 <div className="flex items-center gap-3">
-                  <img src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" className="h-7 w-7 object-contain" />
+                  <Image src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" width={28} height={28} quality={100} className="h-7 w-7 object-contain" />
                   <span className="font-['Space_Grotesk'] text-sm font-bold uppercase tracking-widest">
                     Admin
                   </span>
+                  <button
+                    type="button"
+                    aria-label="Account settings"
+                    onClick={() => {
+                      // Close the drawer first — the modal's backdrop and the
+                      // drawer share z-50, and stacking two blurred backdrops
+                      // reads as a glitch rather than depth.
+                      setIsOpen(false);
+                      setSettingsOpen(true);
+                    }}
+                    className="text-zinc-500 transition-colors hover:text-white"
+                  >
+                    <Settings size={15} strokeWidth={1.5} />
+                  </button>
                 </div>
                 <button
                   type="button"
@@ -236,26 +267,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/10 bg-[#050505]/90 px-4 backdrop-blur md:h-20 md:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            {/* Hamburger — mobile only. */}
-            <button
-              type="button"
-              aria-label="Open menu"
-              aria-expanded={isOpen}
-              onClick={() => setIsOpen(true)}
-              className="-ml-1 text-zinc-300 transition-colors hover:text-white md:hidden"
-            >
-              <Menu size={22} strokeWidth={1.5} />
-            </button>
-            <p className="truncate font-mono text-[11px] uppercase tracking-widest text-zinc-500">
-              Signed in as <span className="text-white">{admin.username}</span>
-            </p>
-          </div>
+        <header className="sticky top-0 z-40 flex h-16 items-center border-b border-white/10 bg-[#050505]/90 px-4 backdrop-blur md:h-20 md:px-6">
+          {/* Hamburger — mobile only. */}
+          <button
+            type="button"
+            aria-label="Open menu"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen(true)}
+            className="-ml-1 text-zinc-300 transition-colors hover:text-white md:hidden"
+          >
+            <Menu size={22} strokeWidth={1.5} />
+          </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="shrink-0 rounded-[var(--radius-md)] border border-white/10 px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-zinc-300 transition-colors hover:border-white/30 hover:text-white md:px-4"
+            className="ml-auto shrink-0 rounded-[var(--radius-md)] border border-white/10 px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-zinc-300 transition-colors hover:border-white/30 hover:text-white md:px-4"
           >
             Log out
           </button>
@@ -269,6 +295,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {children}
         </motion.main>
       </div>
+
+      {/* Account settings modal — available from both chrome headers. */}
+      <AnimatePresence>
+        {settingsOpen && admin && (
+          <AdminSettingsModal
+            key="admin-settings"
+            currentUsername={admin.username}
+            onClose={() => setSettingsOpen(false)}
+            onUpdated={(username) => setAdmin((a) => (a ? { ...a, username } : a))}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

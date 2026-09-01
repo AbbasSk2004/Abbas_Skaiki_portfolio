@@ -12,6 +12,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import Image from 'next/image';
 import { ApiError } from '@/api/api';
 import { cn } from '@/app/lib/cn';
 
@@ -249,15 +250,18 @@ export function Input({
   value,
   onChange,
   type = 'text',
+  autoComplete,
 }: {
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  autoComplete?: string;
 }) {
   return (
     <input
       type={type}
       value={value}
+      autoComplete={autoComplete}
       onChange={(e) => onChange(e.target.value)}
       className="w-full rounded-[var(--radius-md)] border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-white/30"
     />
@@ -305,10 +309,12 @@ export function ImagePicker({
       <div className="flex items-center gap-4">
         {previewUrl ? (
           <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={previewUrl}
               alt=""
+              width={64}
+              height={64}
+              unoptimized
               className="h-16 w-16 rounded-[var(--radius-sm)] object-cover"
             />
             {currentUrl && !file && (

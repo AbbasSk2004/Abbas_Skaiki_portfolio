@@ -10,6 +10,7 @@
 
 import { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
+import Image from 'next/image';
 import {
   listServices,
   createService,
@@ -91,10 +92,12 @@ export default function ServicesAdminPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {s.serviceImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={s.serviceImage}
                           alt=""
+                          width={36}
+                          height={36}
+                          unoptimized
                           className="h-9 w-9 shrink-0 rounded-[var(--radius-sm)] object-cover"
                         />
                       ) : (

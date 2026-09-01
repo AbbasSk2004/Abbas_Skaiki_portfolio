@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import Image from 'next/image';
 import {
   listProjects,
   createProject,
@@ -171,10 +172,12 @@ export default function ProjectsAdminPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {p.coverImage || p.images?.[0] ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={p.coverImage || p.images[0]}
                           alt=""
+                          width={36}
+                          height={36}
+                          unoptimized
                           className="h-9 w-9 shrink-0 rounded-[var(--radius-sm)] object-cover"
                         />
                       ) : (
@@ -522,10 +525,14 @@ function ProjectModal({
             {/* Preview: a freshly picked file wins over the stored URL. */}
             {coverFile ? (
               <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {/* Preview of a freshly picked local file — a blob object URL that
+                    next/image cannot optimize, so this instance stays unoptimized. */}
+                <Image
                   src={URL.createObjectURL(coverFile)}
                   alt=""
+                  width={96}
+                  height={96}
+                  unoptimized
                   className="h-24 w-24 rounded-[var(--radius-sm)] object-cover"
                 />
                 <button
@@ -541,10 +548,12 @@ function ProjectModal({
               </div>
             ) : form.coverImage ? (
               <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={form.coverImage}
                   alt=""
+                  width={96}
+                  height={96}
+                  unoptimized
                   className="h-24 w-24 rounded-[var(--radius-sm)] object-cover"
                 />
                 <button
@@ -588,8 +597,7 @@ function ProjectModal({
             <div className="flex flex-wrap gap-2">
               {(form.images ?? []).map((url) => (
                 <div key={url} className="relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-16 w-16 rounded-[var(--radius-sm)] object-cover" />
+                  <Image src={url} alt="" width={64} height={64} unoptimized className="h-16 w-16 rounded-[var(--radius-sm)] object-cover" />
                   <button
                     type="button"
                     onClick={() => removeExistingImage(url)}

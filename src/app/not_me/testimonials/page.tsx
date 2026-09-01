@@ -10,6 +10,7 @@
 
 import { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
+import Image from 'next/image';
 import {
   listTestimonials,
   createTestimonial,
@@ -90,10 +91,12 @@ export default function TestimonialsAdminPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {t.avatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={t.avatar}
                           alt=""
+                          width={36}
+                          height={36}
+                          unoptimized
                           className="h-9 w-9 shrink-0 rounded-full object-cover"
                         />
                       ) : (

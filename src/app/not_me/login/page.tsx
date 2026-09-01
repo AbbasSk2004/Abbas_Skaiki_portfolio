@@ -9,6 +9,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import { login } from '@/api/admin/auth';
 import { ApiError } from '@/api/api';
@@ -50,7 +51,7 @@ export default function AdminLoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-8 flex items-center gap-3">
-          <img src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" className="h-9 w-9 object-contain" />
+          <Image src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png" alt="" width={36} height={36} quality={100} priority className="h-9 w-9 object-contain" />
           <div className="flex flex-col font-['Space_Grotesk'] text-sm font-bold uppercase leading-[1.1] tracking-wide text-white">
             <span>Abbas Skaiki</span>
             <span className="text-zinc-500">Admin Console</span>

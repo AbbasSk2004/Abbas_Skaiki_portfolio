@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Mail, Phone } from 'lucide-react';
 import { API_BASE_URL } from '@/api/api';
 import type { ContactInfo, SocialLinkItem } from '@/app/works/types';
@@ -291,9 +292,12 @@ export const ContactFooter: React.FC<{ contact?: ContactInfo | null }> = ({ cont
         <div className="flex flex-col border-b md:border-b-0 md:border-r border-white/10">
           <div className="p-8 flex-grow flex flex-col gap-8">
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src="https://res.cloudinary.com/duacqzjyv/image/upload/v1784727313/logo_ueoy5u.png"
                 alt="skaiki.dev logo"
+                width={32}
+                height={32}
+                quality={100}
                 className="w-8 h-8 object-contain"
               />
               <span className="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-white">

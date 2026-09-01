@@ -10,6 +10,7 @@
 // -----------------------------------------------------------------------------
 
 export * as adminAuth from './auth';
+export * as adminSettings from './settings';
 export * as adminProjects from './projects';
 export * as adminServices from './services';
 export * as adminTestimonials from './testimonials';

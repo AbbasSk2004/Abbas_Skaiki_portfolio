@@ -3,8 +3,10 @@ import { DrivenResultsGrid, type Metric } from '../client/DrivenResultsGrid';
 
 // The headline copy is presentation, not data — it never varied per record and
 // was never seeded, so it stays here in the component.
-const HEADLINE =
-  "THE WORK DOESN'T JUST LOOK GOOD — IT PERFORMS. HERE'S THE IMPACT BEHIND THE DESIGN.";
+const HEADLINE_LINES = [
+  "THE WORK DOESN'T JUST LOOK GOOD — IT PERFORMS.",
+  "HERE'S THE IMPACT BEHIND THE DESIGN.",
+];
 
 // Server Component: fetches the impact metrics from the Express API (1-hour ISR
 // via getDrivenResults) and hands plain data to the client grid, where the
@@ -40,8 +42,10 @@ export const DrivenResultsSection: React.FC = async () => {
 
           {/* Right Pane */}
           <div className="col-span-1 md:col-span-8 p-6 md:p-12">
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold uppercase tracking-tight leading-[1.1] font-['Space_Grotesk'] text-white">
-              {HEADLINE}
+            <h2 className="font-mono text-xs font-normal text-zinc-400 uppercase tracking-wider leading-relaxed text-right">
+              &ldquo;{HEADLINE_LINES[0]}
+              <br />
+              {HEADLINE_LINES[1]}&rdquo;
             </h2>
           </div>
         </div>

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import { HeroSection } from './components/home/server/HeroSection';
 import { InfoStrip } from './components/home/server/InfoStrip';
-import { TextAboutSection } from './components/home/server/TextAboutSection';
-import { DrivenResultsSection } from './components/home/server/DrivenResultsSection';
-import { ExpertiseSection } from './components/home/server/AboutSection';
-import { ServicesSection } from './components/home/server/ServicesSection';
-import { ApproachSection } from './components/home/server/ApproachSection';
 import { SelectedWorksSection } from './components/home/server/SelectedWorksSection';
+import { DrivenResultsSection } from './components/home/server/DrivenResultsSection';
 import { TestimonialsSection } from './components/home/server/TestimonialsSection';
+import { ServicesSection } from './components/home/server/ServicesSection';
+import { TextAboutSection } from './components/home/server/TextAboutSection';
+import { ApproachSection } from './components/home/server/ApproachSection';
+import { ExpertiseSection } from './components/home/server/AboutSection';
 
 const description =
   'Abbas Skaiki - Full Stack Developer crafting high-end web applications with precision, technical depth, and thoughtful digital experiences.';
@@ -53,13 +53,13 @@ export default function HomePage() {
     <>
       <HeroSection />
       <InfoStrip />
-      <TextAboutSection />
+      <SelectedWorksSection />
       <DrivenResultsSection />
+      <TestimonialsSection />
       <ExpertiseSection />
+      <TextAboutSection />
       <ServicesSection />
       <ApproachSection />
-      <SelectedWorksSection />
-      <TestimonialsSection />
     </>
   );
 }

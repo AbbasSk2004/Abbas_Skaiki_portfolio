@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import { motion, useInView, useMotionValue, useTransform, animate } from 'motion/react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useInView, useMotionValue, useTransform, useReducedMotion, animate } from 'motion/react';
 
 // Client presentation for the driven-results metric grid. The data (fetched
 // from /api/driven-results with 1-hour ISR) is resolved in the server component
@@ -38,20 +38,42 @@ const AnimatedCounter: React.FC<{ value: number; prefix: string; suffix: string 
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const shouldReduceMotion = useReducedMotion();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const count = useMotionValue(value);
+  const [coefficient, exponent = '0'] = value.toString().split('e');
+  const precision = Math.min(100, Math.max(0, (coefficient.split('.')[1]?.length ?? 0) - Number(exponent)));
+  const rounded = useTransform(count, (latest) => Number(latest.toFixed(precision)));
+  const finalValue = `${prefix}${value}${suffix}`;
 
   useEffect(() => {
-    if (isInView) {
-      animate(count, value, { duration: 2.5, ease: 'easeOut' });
+    if (!isInView || shouldReduceMotion) {
+      setIsAnimating(false);
+      return;
     }
-  }, [isInView, count, value]);
+
+    count.set(0);
+    setIsAnimating(true);
+    const controls = animate(count, value, {
+      duration: 2.5,
+      ease: 'easeOut',
+      onComplete: () => setIsAnimating(false),
+    });
+    return () => controls.stop();
+  }, [isInView, shouldReduceMotion, count, value]);
 
   return (
-    <span ref={ref} className="flex items-center">
-      {prefix && <span>{prefix}</span>}
-      <motion.span>{rounded}</motion.span>
-      <span>{suffix}</span>
+    <span ref={ref} className="relative inline-flex items-center">
+      {/* The final value is always present in HTML and accessible. Opacity
+          preserves its layout and semantics while the visual overlay counts. */}
+      <span className={isAnimating ? 'opacity-0' : undefined}>{finalValue}</span>
+      {isAnimating && (
+        <span aria-hidden="true" className="absolute inset-0 flex items-center">
+          {prefix && <span>{prefix}</span>}
+          <motion.span>{rounded}</motion.span>
+          <span>{suffix}</span>
+        </span>
+      )}
     </span>
   );
 };

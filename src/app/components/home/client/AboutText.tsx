@@ -22,7 +22,7 @@ const Word: React.FC<{ children: string; progress: MotionValue<number>; range: [
 }) => {
   const color = useTransform(progress, range, [DIM_COLOR, BRIGHT_COLOR]);
   return (
-    <motion.span style={{ color }} className="inline-block whitespace-pre">
+    <motion.span style={{ color }}>
       {children}
     </motion.span>
   );
@@ -39,9 +39,9 @@ export const AboutText: React.FC<{ bio: string; portrait?: string }> = ({ bio, p
   const words = bio.split(' ');
 
   return (
-    <section id="about" className="relative border-b border-white/10 max-w-7xl mx-auto flex flex-col md:flex-row">
+    <section id="about" className="relative grid w-full grid-cols-1 md:grid-cols-[minmax(0,7fr)_minmax(0,3fr)] border-b border-white/10 max-w-7xl mx-auto">
       {/* Left Cell: Typography */}
-      <div className="relative w-full md:w-[70%] p-8 md:p-16 border-b md:border-b-0 md:border-r border-white/10 flex flex-col">
+      <div className="relative min-w-0 p-8 md:p-16 border-b md:border-b-0 md:border-r border-white/10 flex flex-col">
         <div className="font-mono text-xs uppercase tracking-widest text-zinc-500 mb-12">
           • ABOUT
         </div>
@@ -51,7 +51,7 @@ export const AboutText: React.FC<{ bio: string; portrait?: string }> = ({ bio, p
             matching the diagonal reading flow rather than a flat horizontal wipe. */}
         <p
           ref={containerRef}
-          className="relative font-['Space_Grotesk'] text-[clamp(1.5rem,4vw,3.5rem)] font-bold leading-[1.1] tracking-tight uppercase flex flex-wrap"
+          className="relative font-['Space_Grotesk'] text-[clamp(1.125rem,2vw,1.75rem)] font-bold leading-[1.4] tracking-tight uppercase text-justify [overflow-wrap:anywhere]"
         >
           {words.map((word, i) => {
             // Give each word a slightly overlapping window across scroll progress
@@ -59,16 +59,19 @@ export const AboutText: React.FC<{ bio: string; portrait?: string }> = ({ bio, p
             const start = i / words.length;
             const end = (i + 1) / words.length;
             return (
-              <Word key={i} progress={scrollYProgress} range={[start, end]}>
-                {word + (i < words.length - 1 ? ' ' : '')}
-              </Word>
+              <React.Fragment key={i}>
+                <Word progress={scrollYProgress} range={[start, end]}>
+                  {word}
+                </Word>
+                {i < words.length - 1 ? ' ' : null}
+              </React.Fragment>
             );
           })}
         </p>
       </div>
 
       {/* Right Cell: Portrait */}
-      <div className="w-full md:w-[30%] bg-[#0a0a0a] relative overflow-hidden group">
+      <div className="min-w-0 bg-[#0a0a0a] relative overflow-hidden group">
         {/* Mobile: lock the wrapper to the portrait's true 2:3 ratio (832x1248)
             so `fill` + object-cover has a matching box and never crops the head —
             this replicates the Vite <img> natural-height behavior. Desktop keeps

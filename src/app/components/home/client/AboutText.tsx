@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'motion/react';
 import Image from 'next/image';
 
@@ -22,14 +22,77 @@ const Word: React.FC<{ children: string; progress: MotionValue<number>; range: [
 }) => {
   const color = useTransform(progress, range, [DIM_COLOR, BRIGHT_COLOR]);
   return (
-    <motion.span style={{ color }}>
+    <motion.span style={{ color }} className="me-[var(--about-word-space,0px)] md:me-0">
       {children}
     </motion.span>
   );
 };
 
 export const AboutText: React.FC<{ bio: string; portrait?: string }> = ({ bio, portrait }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const paragraph = containerRef.current;
+    if (!paragraph) return;
+
+    const desktop = window.matchMedia('(min-width: 48rem)');
+    const spans = Array.from(paragraph.querySelectorAll<HTMLSpanElement>('span'));
+    let active = true;
+    let measuredWidth = 0;
+
+    const justify = () => {
+      if (!active) return;
+      // Measure native wrapping first. CSS variables keep spacing independent
+      // of Motion's color updates, and all reads precede the final writes.
+      spans.forEach(span => span.style.removeProperty('--about-word-space'));
+      const bounds = paragraph.getBoundingClientRect();
+      measuredWidth = bounds.width;
+      if (desktop.matches) return;
+
+      const lines = new Map<number, { words: HTMLSpanElement[]; right: number; split: boolean }>();
+      spans.forEach(span => {
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        const rects = Array.from(range.getClientRects());
+        rects.forEach(rect => {
+          const top = Math.round(rect.top);
+          const line = lines.get(top) ?? { words: [], right: 0, split: false };
+          line.words.push(span);
+          line.right = Math.max(line.right, rect.right);
+          line.split ||= rects.length > 1;
+          lines.set(top, line);
+        });
+      });
+
+      // Add at most 0.12em per gap. Short lines retain their natural shape;
+      // the final line and lines containing a split word remain unstretched.
+      const maxExtra = parseFloat(getComputedStyle(paragraph).fontSize) * 0.12;
+      Array.from(lines.values()).slice(0, -1).forEach(line => {
+        if (line.split || line.words.length < 2) return;
+        const extra = Math.min(maxExtra, Math.max(0, bounds.right - line.right - 1) / (line.words.length - 1));
+        line.words.slice(0, -1).forEach(span => {
+          span.style.setProperty('--about-word-space', `${extra}px`);
+        });
+      });
+    };
+
+    const observer = new ResizeObserver(() => {
+      if (paragraph.getBoundingClientRect().width !== measuredWidth) justify();
+    });
+    justify();
+    observer.observe(paragraph);
+    desktop.addEventListener('change', justify);
+    document.fonts.addEventListener('loadingdone', justify);
+    void document.fonts.ready.then(justify);
+
+    return () => {
+      active = false;
+      observer.disconnect();
+      desktop.removeEventListener('change', justify);
+      document.fonts.removeEventListener('loadingdone', justify);
+      spans.forEach(span => span.style.removeProperty('--about-word-space'));
+    };
+  }, [bio]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -51,7 +114,7 @@ export const AboutText: React.FC<{ bio: string; portrait?: string }> = ({ bio, p
             matching the diagonal reading flow rather than a flat horizontal wipe. */}
         <p
           ref={containerRef}
-          className="relative font-['Space_Grotesk'] text-[clamp(1.125rem,2vw,1.75rem)] font-bold leading-[1.4] tracking-tight uppercase text-justify [overflow-wrap:anywhere]"
+          className="relative font-['Space_Grotesk'] text-[clamp(1.125rem,2vw,1.75rem)] font-bold leading-[1.4] tracking-tight uppercase text-left md:text-justify [overflow-wrap:anywhere]"
         >
           {words.map((word, i) => {
             // Give each word a slightly overlapping window across scroll progress
